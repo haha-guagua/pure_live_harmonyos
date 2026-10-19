@@ -1,0 +1,10 @@
+{
+  "app": {
+    "bundleName": "com.mystyle.purelive.ohos",
+    "vendor": "PureLive",
+    "versionCode": 4108,
+    "versionName": "3.1.19",
+    "icon": "$media:app_icon",
+    "label": "$string:app_name"
+  }
+}

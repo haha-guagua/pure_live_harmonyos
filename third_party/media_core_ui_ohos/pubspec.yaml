@@ -1,0 +1,33 @@
+name: media_core_ui
+
+description: Player UI for media_core - material, cupertino, fluent, macos, yaru and neumorphic control sets sharing one control layer.
+
+
+version: 0.1.0
+publish_to: none
+repository: https://github.com/liuchuancong/media_core
+issue_tracker: https://github.com/liuchuancong/media_core/issues
+
+
+environment:
+  sdk: ">=3.9.0 <4.0.0"
+  flutter: ">=3.35.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # The player the controls drive, its video view, the zoom controller and the
+  # screenshot API.
+  media_core:
+    git:
+      url: https://github.com/liuchuancong/media_core
+      path: packages/media_core
+      ref: a13f5c15f90f0180a93a2ab539ea82ef55a7f7fd
+
+dev_dependencies:
+  flutter_lints: ^6.0.0
+
+  # The control sets are widgets; they are checked by pumping them.
+  flutter_test:
+    sdk: flutter

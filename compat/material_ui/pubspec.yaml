@@ -1,0 +1,12 @@
+name: material_ui
+version: 1.4.0+ohos.compat
+publish_to: none
+description: Material API compatibility for the Flutter OH 3.41 application branch.
+environment:
+  sdk: ^3.11.0
+  flutter: '>=3.41.0'
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter

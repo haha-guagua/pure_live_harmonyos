@@ -1,0 +1,1 @@
+libc++_shared.so is the arm64 OpenHarmony C++ shared runtime from the installed DevEco SDK26.0.0.105. Required by the pinned OHOS libmpv bundle. SHA256: 965803c3fe53e02452e4c0479ad13c88f166c04207d27e3c531161a7c75a6c17
