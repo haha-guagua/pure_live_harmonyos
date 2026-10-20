@@ -30,6 +30,9 @@ def prepare(tag: str, hap: Path, output: Path) -> None:
                     "versionCode": int(version[2]), "debug": True}
         if any(app.get(key) != value for key, value in expected.items()):
             raise ValueError("HAP application identity/version/build mode mismatch")
+        minimum_api = int(app.get("minAPIVersion", 0)) % 1000
+        if minimum_api < 20:
+            raise ValueError("HAP minimum API must cover the native recording engine (API 20+)")
         names = archive.namelist()
         required = ["libmpv.so", "libmedia_kit_event_loop.so", "libsqlite3.so", "libffmpegkit_napi.so", "libaki_jsbind.so"]
         if any(f"libs/arm64-v8a/{name}" not in names for name in required):
@@ -49,7 +52,7 @@ def prepare(tag: str, hap: Path, output: Path) -> None:
     (output / "SHA256SUMS.txt").write_text(f"{digest}  {asset.name}\n", encoding="utf-8")
     metadata = {"tag": tag, "commit": commit, "applicationVersion": f"{version[1]}+{version[2]}",
                 "bundleName": expected["bundleName"], "platform": "HarmonyOS", "architecture": "arm64-v8a",
-                "configuration": "Debug", "signing": "device-bound-debug", "minimumApi": 20,
+                "configuration": "Debug", "signing": "device-bound-debug", "minimumApi": minimum_api,
                 "deviceTestedByThisBuild": False, "asset": asset.name, "bytes": asset.stat().st_size, "sha256": digest}
     (output / "build-metadata.json").write_text(json.dumps(metadata, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     shutil.copyfile(ROOT / "docs" / "INSTALLATION.md", output / "INSTALLATION.md")

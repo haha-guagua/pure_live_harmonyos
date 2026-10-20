@@ -30,10 +30,10 @@ class HarmonyReleaseTests(unittest.TestCase):
         self.addCleanup(self.git_patch.stop)
         self.make_hap()
 
-    def make_hap(self, code=4108, missing=None):
+    def make_hap(self, code=4108, missing=None, minimum_api=60000020):
         with zipfile.ZipFile(self.hap, 'w') as archive:
             archive.writestr('module.json', json.dumps({'app': {'bundleName': 'com.mystyle.purelive.ohos',
-                'versionName': '3.1.19', 'versionCode': code, 'debug': True}}))
+                'versionName': '3.1.19', 'versionCode': code, 'debug': True, 'minAPIVersion': minimum_api}}))
             for library in ['libmpv.so', 'libmedia_kit_event_loop.so', 'libsqlite3.so', 'libffmpegkit_napi.so', 'libaki_jsbind.so']:
                 if library != missing:
                     archive.writestr('libs/arm64-v8a/' + library, b'native-fixture')
@@ -68,6 +68,11 @@ class HarmonyReleaseTests(unittest.TestCase):
     def test_rejects_missing_recording_engine(self):
         self.make_hap(missing='libffmpegkit_napi.so')
         with self.assertRaisesRegex(ValueError, 'native library'):
+            release.prepare('v3.1.19-ohos.1', self.hap, self.output)
+
+    def test_rejects_incompatible_minimum_api(self):
+        self.make_hap(minimum_api=50000018)
+        with self.assertRaisesRegex(ValueError, 'minimum API'):
             release.prepare('v3.1.19-ohos.1', self.hap, self.output)
 
     def test_rejects_mixed_old_release_output(self):
