@@ -47,6 +47,7 @@ try {
         (Join-Path $DevEcoStudio 'tools\hvigor\bin') + ';' + $env:PATH
 
     & (Join-Path $PSScriptRoot 'apply_harmonyos_sdk_patch.ps1') -FlutterSdk $FlutterSdk
+    & (Join-Path $PSScriptRoot 'apply_harmonyos_fullscreen_patch.ps1') -FlutterSdk $FlutterSdk -RepoRoot $repoRoot
 
     # libmpv is prebuilt, so Hvigor does not infer its shared C++ dependency.
     $libraryDir = Join-Path $repoRoot 'ohos\entry\libs\arm64-v8a'

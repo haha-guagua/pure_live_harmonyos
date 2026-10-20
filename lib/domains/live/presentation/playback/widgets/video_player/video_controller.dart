@@ -6,6 +6,7 @@ import 'iptv_programme_policy.dart';
 
 import 'package:flutter/scheduler.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/platform/platform_utils.dart' as app_platform;
 import 'package:media_core/media_core.dart';
 import 'package:battery_plus/battery_plus.dart';
 import 'package:flame_barrage/flame_barrage.dart';
@@ -1438,7 +1439,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   }
 
   Future<void> enterFullScreen({bool forceLandscape = false}) async {
-    final isMobile = Platform.isAndroid || Platform.isIOS;
+    final isMobile = app_platform.PlatformUtils.isMobile;
     _fullscreenOrientationRestore.begin(restorePortraitOnExit: isMobile && forceLandscape);
     await WindowService().doEnterFullScreen();
     GlobalPlayerService.instance.player.isSystemFullscreen.value = true;
@@ -1447,7 +1448,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     // landScape there issued a second setFullScreen(true) while the first
     // native transition was still running, producing inconsistent work-area
     // bounds on Windows systems with a side taskbar.
-    if (Platform.isAndroid || Platform.isIOS) {
+    if (app_platform.PlatformUtils.isMobile) {
       if (forceLandscape) {
         await WindowService().landScape();
       } else {
@@ -1538,7 +1539,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   Future<void> applyFullscreenOrientationPolicy() async {
     if (_isDisposed ||
         !GlobalPlayerService.instance.player.isSystemFullscreen.value ||
-        !(Platform.isAndroid || Platform.isIOS)) {
+        !app_platform.PlatformUtils.isMobile) {
       return;
     }
     if (_livePlayController.state.value.ui.screenMode == VideoMode.portraitFullscreen) {

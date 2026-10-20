@@ -224,7 +224,7 @@ class _PlayerBackScopeState extends State<PlayerBackScope> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope<Object?>(
+    final content = PopScope<Object?>(
       canPop: !widget.presentationActive,
       onPopInvokedWithResult: (didPop, _) {
         if (!didPop && widget.presentationActive) {
@@ -232,6 +232,18 @@ class _PlayerBackScopeState extends State<PlayerBackScope> {
         }
       },
       child: widget.child,
+    );
+    if (defaultTargetPlatform.name != 'ohos') return content;
+    // GetDelegate.popRoute removes its page directly, bypassing PopScope.
+    // OH has no Android predictive-back interceptor. Consume presentation Back
+    // at the Router boundary before the delegate removes the room.
+    return BackButtonListener(
+      onBackButtonPressed: () async {
+        if (!widget.presentationActive || ModalRoute.of(context)?.isCurrent != true) return false;
+        await _handlePresentationBack();
+        return true;
+      },
+      child: content,
     );
   }
 }

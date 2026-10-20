@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:media_core/media_core.dart';
 import 'package:media_core_fullscreen/media_core_fullscreen.dart';
 import 'package:pure_live/core/index.dart';
+import 'package:pure_live/core/platform/platform_utils.dart' as app_platform;
 import 'package:pure_live/core/player/kernel/player_kernel_service.dart';
 
 @visibleForTesting
@@ -56,6 +57,9 @@ final class PureLiveFullscreenWindow implements FullscreenWindow {
 }
 
 final FullscreenDriver fullscreenDriver = FullscreenDriver(
+  // media_core's platform resolver predates HarmonyOS. Its mobile driver uses
+  // SystemChrome, which is implemented by Flutter OH as well.
+  platform: app_platform.PlatformUtils.isOhos ? FullscreenPlatform.mobile : null,
   // Restoring the pre-fullscreen bounds is load-bearing beyond fullscreen
   // itself: entering picture-in-picture releases fullscreen first, and the
   // PiP backend captures the window state at that moment. Without the
@@ -87,7 +91,7 @@ class WindowService {
     try {
       if (kIsWeb) {
         await document.documentElement?.requestFullscreen();
-      } else if (Platform.isAndroid || Platform.isIOS) {
+      } else if (app_platform.PlatformUtils.isMobile) {
         if (!_canApplyMobileOrientationLock()) return;
         await SystemChrome.setPreferredOrientations([
           DeviceOrientation.landscapeLeft,
@@ -108,7 +112,7 @@ class WindowService {
   }
 
   Future<void> followSystemOrientation() async {
-    if (!(Platform.isAndroid || Platform.isIOS)) return;
+    if (!(app_platform.PlatformUtils.isMobile)) return;
     await SystemChrome.setPreferredOrientations(const <DeviceOrientation>[]);
   }
 
@@ -123,7 +127,7 @@ class WindowService {
 
   Future<void> doExitFullScreen() async {
     try {
-      if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      if (!kIsWeb && (app_platform.PlatformUtils.isMobile)) {
         // Host-owned policy on mobile: the status bar styling and the
         // orientation restore are this app's theming and orientation rules.
         // The system UI mode itself is restored by the driver below.
