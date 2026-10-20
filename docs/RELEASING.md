@@ -36,8 +36,9 @@ Runner 尚未注册时，工作流会等待机器，不会自动在 GitHub 云�
    }
    ```
 
-4. 确认 Runner 能访问 GitHub、GitCode、pub.dev 与 OHPM，且可以运行 Git、PowerShell、Java 和编译工具。工作流通过固定提交的 `setup-python` 准备 Python 3.12。SDK 缓存与工具链补丁沿用本项目构建入口；重型任务仍使用共享资源锁。
-5. 使用交互进程启动 Runner 进行首次验证；需要开机自动运行时再配置 Windows 服务。证书/profile 过期或增加设备时需在本机更新签名配置。
+4. 普通权限 Runner 需要 Windows 开发者模式提供插件符号链接支持，否则 Flutter 会在依赖解析后停止。由设备所有者确认后，在 Windows 设置的“开发者选项”中开启；参见 [微软说明](https://learn.microsoft.com/en-us/windows/advanced-settings/developer-mode)。不要为此改用管理员 Runner。
+5. 确认 Runner 能访问 GitHub、GitCode、pub.dev 与 OHPM，且可以运行 Git、PowerShell、Java 和编译工具。工作流通过固定提交的 `setup-python` 准备 Python 3.12。SDK 缓存与工具链补丁沿用本项目构建入口；重型任务仍使用共享资源锁。
+6. 使用交互进程启动 Runner 进行首次验证；需要开机自动运行时再配置 Windows 服务。证书/profile 过期或增加设备时需在本机更新签名配置。
 
 工作流只响应本仓库所有者的标签和手动事件，不执行 PR 或 fork 代码。公开源码不代表设备签名包可在所有设备安装。
 
