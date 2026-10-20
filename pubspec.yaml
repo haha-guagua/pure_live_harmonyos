@@ -107,8 +107,11 @@ dependencies:
   # directly so desktop builds never register a physical-monitor DDC/CI plugin.
   screen_brightness_platform_interface: ^2.1.2
   screen_brightness_android: ^2.1.6
+  screen_brightness_ohos:
+    path: third_party/screen_brightness_ohos
   screen_brightness_ios: ^2.1.4
-  volume_controller: ^3.5.0 # 音量控制
+  volume_controller:
+    path: third_party/volume_controller_ohos
 
   battery_plus: ^7.0.0 # 电池状态获取
   permission_handler: ^13.0.1 # 权限管理

@@ -5,6 +5,7 @@ import 'dart:developer';
 import 'iptv_programme_policy.dart';
 
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 import 'package:pure_live/core/index.dart';
 import 'package:pure_live/core/platform/platform_utils.dart' as app_platform;
 import 'package:media_core/media_core.dart';
@@ -45,8 +46,8 @@ enum PlayerStatus { idle, loading, playing, error, disposed }
 class PlatformHelper {
   static bool get isMobile => Platform.isAndroid || Platform.isIOS;
   static bool get isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
-  static bool get supportsBrightness => Platform.isAndroid || Platform.isIOS;
-  static bool get supportsVolumeController => Platform.isAndroid || Platform.isIOS;
+  static bool get supportsBrightness => app_platform.PlatformUtils.isMobile;
+  static bool get supportsVolumeController => app_platform.PlatformUtils.isMobile;
   static bool get supportsBatteryMonitoring => Platform.isAndroid || Platform.isIOS;
 }
 
@@ -455,7 +456,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   final VolumeController? _injectedVolumeController;
   static const _volumeOperationTimeout = Duration(seconds: 2);
   int _volumeRevision = 0;
-  bool get _usesSystemVolume => PlatformHelper.supportsVolumeController || _injectedVolumeController != null;
+  bool get _usesNativeVolume => PlatformHelper.supportsVolumeController || _injectedVolumeController != null;
   bool get _ownsVolume => !_isDisposed && _playerManager.ownsVideoController(this);
   late final BarrageController danmakuController;
   late final BarrageController pipDanmakuController;
@@ -582,7 +583,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   }
 
   Future<void> _initVolumeController() async {
-    if (!_usesSystemVolume || !_ownsVolume) return;
+    if (!_usesNativeVolume || !_ownsVolume) return;
     _volumeController = _injectedVolumeController ?? VolumeController.instance;
     _volumeController.showSystemUI = false;
     try {
@@ -837,7 +838,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
 
   Future<double?> volume() async {
     if (!_ownsVolume) return null;
-    if (!_usesSystemVolume) return room.getSavedVolume();
+    if (!_usesNativeVolume) return room.getSavedVolume();
     final revision = _volumeRevision;
     try {
       final observed = await _volumeController.getVolume().timeout(_volumeOperationTimeout);
@@ -862,7 +863,7 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     final revision = ++_volumeRevision;
     final resolved = value.clamp(0.0, 1.0).toDouble();
     try {
-      if (_usesSystemVolume) {
+      if (_usesNativeVolume) {
         await _volumeController.setVolume(resolved).timeout(_volumeOperationTimeout);
       } else {
         await _playerManager.setVolume(resolved).timeout(_volumeOperationTimeout);
@@ -881,6 +882,13 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   }
 
   Future<double> brightness() async {
+    if (app_platform.PlatformUtils.isOhos) {
+      // OH's standard codec sends exact 0/1 as ints; normalize both numeric types.
+      final value = await const MethodChannel('github.com/aaassseee/screen_brightness')
+          .invokeMethod<num>('getApplicationScreenBrightness');
+      if (value == null || !value.isFinite) throw StateError('Invalid window brightness');
+      return value.toDouble().clamp(0.0, 1.0);
+    }
     if (PlatformHelper.supportsBrightness) {
       return await brightnessController!.application;
     }
@@ -1690,6 +1698,14 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     _epgLoadEpoch++;
     _setStatus(PlayerStatus.disposed);
 
+    if (app_platform.PlatformUtils.isOhos && _playerManager.ownsVideoController(this)) {
+      final brightness = _brightnessController;
+      if (brightness != null) {
+        unawaited(brightness.resetApplicationScreenBrightness().catchError((Object error, StackTrace stack) {
+          log('Reset brightness failed', name: 'VideoController.Brightness', error: error, stackTrace: stack);
+        }));
+      }
+    }
     _playerManager.detachVideoController(this);
     _danmakuManager.dispose();
     _cancelAllTimers();

@@ -20,3 +20,11 @@ These local overrides belong to this HarmonyOS compatibility repository. Current
 Native bundle SHA256 and SQLite source provenance are documented in the corresponding package OHOS_COMPAT.md files. The application build entrypoint copies the installed OpenHarmony SDK C++ shared runtime into generated/ignored native library output. SDK, dependency resolution, native compilation, signing, and device acceptance remain separate evidence stages.
 
 The pinned Flutter OH asset-bundle correction is documented in [tool/patches/README.md](../tool/patches/README.md). Real-device playback and remaining limitations are recorded in [docs/HARMONYOS_PORT.md](../docs/HARMONYOS_PORT.md).
+
+## Playback gestures and recording
+
+- `screen_brightness_ohos` 2.1.4: official pub package, vendored with numeric/context/callback fixes; provenance in its `OHOS_COMPAT.md`.
+- `volume_controller_ohos`: preserves the public 3.5.0 Dart API, adds CPF-Flutter OH source at `518ee2c810901a93a4d12b04673af06230780149`; provenance in its `OHOS_COMPAT.md`.
+- Native recording uses official OHPM `@ohos/ffmpeg-kit` 1.0.0. HAR integrity from registry verified before integration; archive SHA-256 `f72e1ea8343bc30de25d069458ec2f63d5bf26ae0000d7ef075069d0631faf8f`. No HAR/native binary is committed. Package license files are retained by OHPM; upstream source https://gitcode.com/CPF-ApplicationTPC/ohos_ffmpeg_kit. The vendored desktop FFmpeg FFI bindings remain disabled on OH; this is a separate native MethodChannel session backend.
+
+录制引擎的 AKI C++ 桥接运行库固定为 `@ohos/aki` `1.2.25`（工程级 `overrides`），不沿用包中 `^1.2.25` 自动升级到 1.3.x 的解析结果。升级原生桥接依赖前必须重新实机验证会话创建、停止及回放。

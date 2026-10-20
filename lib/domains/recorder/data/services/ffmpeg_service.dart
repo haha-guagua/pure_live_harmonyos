@@ -1,3 +1,7 @@
+import 'package:pure_live/core/platform/platform_utils.dart';
+import 'record_native_session.dart';
+import 'ffi_record_native_session.dart';
+import 'harmony_record_native_session.dart';
 import 'package:dio/dio.dart';
 
 import 'owned_record_input.dart';
@@ -196,7 +200,7 @@ class FFmpegRecordSession {
 
   final String taskId;
   final int sessionId;
-  final FFmpegSession session;
+  final RecordNativeSession session;
   final bool liveRecording;
   final FFmpegHlsInputRelay? inputRelay;
   final FFmpegFlvInputRelay? flvInputRelay;
@@ -466,9 +470,11 @@ class FFmpegService {
     FFmpegFlvInputRelay? flvInputRelay,
     OwnedRecordInput? ownedInput,
   }) async {
-    late final FFmpegSession nativeSession;
+    late final RecordNativeSession nativeSession;
     try {
-      nativeSession = _createSession(effectiveArguments);
+      nativeSession = PlatformUtils.isOhos && _initializeOverride == null
+          ? HarmonyRecordingBridge.instance.create(effectiveArguments)
+          : FfiRecordNativeSession(_createSession(effectiveArguments), _cancelSession);
     } catch (_) {
       await inputRelay?.close();
       await flvInputRelay?.close();
@@ -511,7 +517,7 @@ class FFmpegService {
     nativeSession.setLogCallback((entry) {
       if (!identical(_sessions[taskId], session)) return;
       final hadGap = session.hasInputCoverageGap;
-      session.appendDiagnostic(entry.message);
+      session.appendDiagnostic(entry);
       if (!hadGap && session.hasInputCoverageGap) {
         _safeEmit(
           onEvent,
@@ -705,7 +711,7 @@ class FFmpegService {
     final future = _initializeOverride != null
         ? _initializeOverride()
         : Future.wait<void>([
-            FFmpegKitExtended.initialize(),
+            PlatformUtils.isOhos ? HarmonyRecordingBridge.instance.initialize() : FFmpegKitExtended.initialize(),
             FFmpegTlsTrustStore.ensureReady().then<void>((path) => _trustedCaFile = path),
           ]);
     _initializing = future;
@@ -771,7 +777,7 @@ class FFmpegService {
     }
     if (session.completion.isCompleted) return;
     session.forcedCancel = true;
-    _cancelSession(session.session);
+    await session.session.cancel();
     try {
       await session.completion.future.timeout(const Duration(seconds: 10));
     } on TimeoutException {
