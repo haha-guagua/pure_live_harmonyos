@@ -2,7 +2,7 @@
 
 ## 当前状态
 
-仓库已选择公开源码。发布配置检查已接入 GitHub Actions；专用 Runner 尚未注册，没有发布 Release 或 Packages。以下设备签名构建方案仅用于私有仓库，公开后条件不满足会跳过。公开分发需另接未签名或正式分发签名流程，不上传本机设备绑定的调试包。
+仓库公开源码。维护者已明确授权专用本机 Runner 构建并发布设备绑定的调试签名 HAP 与未签名 HAP。只允许仓库所有者触发版本标签/手动构建，不执行公开 PR 或 fork 工作流。私钥、口令和独立签名 profile 不作为发布附件；签名 HAP 本身包含验证所需的证书/profile及设备绑定信息。
 
 ## 触发与版本
 
@@ -39,11 +39,11 @@ Runner 尚未注册时，工作流会等待机器，不会自动在 GitHub 云�
 4. 确认 Runner 能访问 GitHub、GitCode、pub.dev 与 OHPM，且可以运行 Git、PowerShell、Java 和编译工具。工作流通过固定提交的 `setup-python` 准备 Python 3.12。SDK 缓存与工具链补丁沿用本项目构建入口；重型任务仍使用共享资源锁。
 5. 使用交互进程启动 Runner 进行首次验证；需要开机自动运行时再配置 Windows 服务。证书/profile 过期或增加设备时需在本机更新签名配置。
 
-工作流只响应此私有仓库的标签和手动事件，不执行 PR 或 fork 代码。仓库改为公开后，设备限定签名包的自动发布会停止；应先重新设计正式签名与分发流程。
+工作流只响应本仓库所有者的标签和手动事件，不执行 PR 或 fork 代码。公开源码不代表设备签名包可在所有设备安装。
 
 ## 发布附件与验收
 
-构建后验证签名、ZIP完整性、应用包名/版本、Debug模式、arm64播放器与录制库、原生资产映射清单。成功后发布 HAP、`SHA256SUMS.txt`、`build-metadata.json` 和 `INSTALLATION.md`；完整说明写入 Release 正文。
+构建后验证签名、ZIP完整性、应用包名/版本、Debug模式、arm64播放器与录制库、原生资产映射清单。同一构建产出的两种 HAP 还须通过逐项内容一致性检查；unsigned 必须不能通过包签名验证。成功后发布签名和未签名 HAP、`SHA256SUMS.txt`、`build-metadata.json` 和 `INSTALLATION.md`；完整说明写入 Release 正文。
 
 先建立 Draft 并上传全部附件，再转为预览版。失败不覆盖已有正式可见版本。失败后留下的 Draft 应先检查附件与日志，再处理该草稿，不得用强制移动标签掩盖失败。
 
@@ -53,7 +53,7 @@ Runner 尚未注册时，工作流会等待机器，不会自动在 GitHub 云�
 
 GitHub Packages 不提供通用 HAP 文件仓库。面向手机的下载入口是 Releases。
 
-工作流另预留 GHCR 容器归档：将仓库 Actions variable `PUBLISH_GHCR` 设置为字符串 `true` 后，同一版本发布成功会把安装附件归档到 `ghcr.io/haha-guagua/pure_live_harmonyos:<版本标签>`。这是供自动化使用的文件容器，不能当作手机应用或服务启动。默认不启用此步骤。
+工作流另预留 GHCR 容器归档：将仓库 Actions variable `PUBLISH_GHCR` 设置为字符串 `true` 后，同一版本发布成功会把安装附件归档到 `ghcr.io/haha-guagua/pure_live_harmonyos:<版本标签>`。这是供自动化使用的文件容器，不能当作手机应用或服务启动。本机接入时已按维护者授权启用此步骤。
 
 首次发布的 Package 应检查为 Private，并保持仓库权限继承。流程使用短期 `GITHUB_TOKEN` 的 `packages:write` 权限，不需要额外提交 PAT。不要把此含设备限定签名的归档改为 Public。
 

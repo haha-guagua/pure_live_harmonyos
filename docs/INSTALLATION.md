@@ -7,6 +7,7 @@
 | 文件 | 用途 |
 | --- | --- |
 | `PureLive-vX.Y.Z-ohos.N-harmonyos-arm64-debug-device-signed.hap` | arm64 鸿蒙手机调试安装包，仅允许签名 profile 登记的设备安装 |
+| `PureLive-vX.Y.Z-ohos.N-harmonyos-arm64-debug-unsigned.hap` | 相同应用内容的未签名包，不能直接安装，需使用自己的证书与设备 profile 签名 |
 | `SHA256SUMS.txt` | 安装包 SHA-256 校验值 |
 | `build-metadata.json` | 版本、提交、架构、构建模式和校验值，不包含证书或设备标识 |
 | `INSTALLATION.md` | 本安装说明 |
@@ -30,6 +31,12 @@ hdc -t '<设备标识或无线调试地址>' install -r '.\PureLive-vX.Y.Z-ohos.
 ```
 
 应用包名为 `com.mystyle.purelive.ohos`。同包名、兼容签名的覆盖安装通常保留数据；安装失败时先查看 HDC 的实际错误，不要直接卸载。卸载会影响关注、设置与沙箱录像，应先备份。
+
+## 两种包的区别
+
+- **device-signed**：已完成调试签名，可用于签名 profile 登记的设备；不是通用签名，不保证其他用户手机可直接安装。HAP 内嵌验证证书/profile 和设备绑定信息，未包含签名私钥或口令。
+- **unsigned**：不含应用包签名，不能直接通过 HDC 安装。开发者需使用自己的华为开发者证书、设备 profile 和私钥签名；不熟悉重签名流程时，推荐按 README 从源码用 DevEco Studio 自动签名构建。
+- 两种包来自同一构建，发布流程逐项校验应用内容一致。两者都是 Debug 模式，unsigned 不等于 Release 模式，也不等于适用于所有设备。
 
 ## 设备不在调试签名范围时
 

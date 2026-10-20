@@ -21,6 +21,7 @@ class HarmonyReleaseTests(unittest.TestCase):
         (self.root / 'docs/releases/v3.1.19-ohos.1.md').write_text('Documented changes and limitations. ' * 5)
         (self.root / 'docs/INSTALLATION.md').write_text('Only profile-enrolled devices can install this Debug HAP.')
         self.hap = self.root / 'input.hap'
+        self.unsigned_hap = self.root / 'unsigned.hap'
         self.output = self.root / 'release'
         self.root_patch = patch.object(release, 'ROOT', self.root)
         self.root_patch.start()
@@ -29,6 +30,7 @@ class HarmonyReleaseTests(unittest.TestCase):
         self.git_patch.start()
         self.addCleanup(self.git_patch.stop)
         self.make_hap()
+        self.unsigned_hap.write_bytes(self.hap.read_bytes())
 
     def make_hap(self, code=4108, missing=None, minimum_api=60000020):
         with zipfile.ZipFile(self.hap, 'w') as archive:
@@ -40,46 +42,56 @@ class HarmonyReleaseTests(unittest.TestCase):
             archive.writestr('resources/flutter_assets/NativeAssetsManifest.json', '{}')
 
     def test_prepares_traceable_assets_without_claiming_device_acceptance(self):
-        release.prepare('v3.1.19-ohos.1', self.hap, self.output)
+        release.prepare('v3.1.19-ohos.1', self.hap, self.output, self.unsigned_hap)
         metadata = json.loads((self.output / 'build-metadata.json').read_text())
         self.assertFalse(metadata['deviceTestedByThisBuild'])
-        self.assertEqual(metadata['signing'], 'device-bound-debug')
-        self.assertEqual(len(list(self.output.glob('*.hap'))), 1)
-        self.assertIn(metadata['sha256'], (self.output / 'SHA256SUMS.txt').read_text())
+        self.assertEqual([a['signing'] for a in metadata['assets']], ['device-bound-debug', 'unsigned'])
+        self.assertEqual(len(list(self.output.glob('*.hap'))), 2)
+        self.assertIn(metadata['assets'][0]['sha256'], (self.output / 'SHA256SUMS.txt').read_text())
         self.assertEqual(metadata['commit'], 'a' * 40)
 
     def test_rejects_unrelated_tag(self):
         with self.assertRaisesRegex(ValueError, 'Expected version tag'):
-            release.prepare('main', self.hap, self.output)
+            release.prepare('main', self.hap, self.output, self.unsigned_hap)
 
     def test_rejects_version_mismatch(self):
         with self.assertRaisesRegex(ValueError, 'pubspec'):
-            release.prepare('v9.0.0-ohos.1', self.hap, self.output)
+            release.prepare('v9.0.0-ohos.1', self.hap, self.output, self.unsigned_hap)
 
     def test_requires_version_specific_release_notes(self):
         with self.assertRaisesRegex(ValueError, 'release notes'):
-            release.prepare('v3.1.19-ohos.2', self.hap, self.output)
+            release.prepare('v3.1.19-ohos.2', self.hap, self.output, self.unsigned_hap)
 
     def test_rejects_stale_hap_version(self):
         self.make_hap(code=4107)
         with self.assertRaisesRegex(ValueError, 'identity/version'):
-            release.prepare('v3.1.19-ohos.1', self.hap, self.output)
+            release.prepare('v3.1.19-ohos.1', self.hap, self.output, self.unsigned_hap)
 
     def test_rejects_missing_recording_engine(self):
         self.make_hap(missing='libffmpegkit_napi.so')
         with self.assertRaisesRegex(ValueError, 'native library'):
-            release.prepare('v3.1.19-ohos.1', self.hap, self.output)
+            release.prepare('v3.1.19-ohos.1', self.hap, self.output, self.unsigned_hap)
 
     def test_rejects_incompatible_minimum_api(self):
         self.make_hap(minimum_api=50000018)
         with self.assertRaisesRegex(ValueError, 'minimum API'):
-            release.prepare('v3.1.19-ohos.1', self.hap, self.output)
+            release.prepare('v3.1.19-ohos.1', self.hap, self.output, self.unsigned_hap)
+
+    def test_rejects_different_unsigned_payload(self):
+        with zipfile.ZipFile(self.unsigned_hap, 'a') as archive:
+            archive.writestr('unexpected.bin', b'other build')
+        with self.assertRaisesRegex(ValueError, 'payloads differ'):
+            release.prepare('v3.1.19-ohos.1', self.hap, self.output, self.unsigned_hap)
+
+    def test_requires_two_distinct_input_files(self):
+        with self.assertRaisesRegex(ValueError, 'distinct'):
+            release.prepare('v3.1.19-ohos.1', self.hap, self.output, self.hap)
 
     def test_rejects_mixed_old_release_output(self):
         self.output.mkdir()
         (self.output / 'old.hap').write_bytes(b'old')
         with self.assertRaisesRegex(ValueError, 'empty'):
-            release.prepare('v3.1.19-ohos.1', self.hap, self.output)
+            release.prepare('v3.1.19-ohos.1', self.hap, self.output, self.unsigned_hap)
 
 
 if __name__ == '__main__':
