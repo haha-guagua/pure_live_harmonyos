@@ -41,6 +41,14 @@ Runner 尚未注册时，工作流会等待机器，不会自动在 GitHub 云�
 
 工作流只响应本仓库所有者的标签和手动事件，不执行 PR 或 fork 代码。公开源码不代表设备签名包可在所有设备安装。
 
+### 当前本机配置
+
+- 节点名称：`pure-live-ohos-windows`，仅供本仓库使用，标签 `pure-live-ohos`。
+- Runner 程序：`E:\DevTools\PureLiveCI\runner`；工作目录：`E:\pl-ci`，用于避免 Windows 路径过长。Runner 进程单独启用 Git `core.longpaths`，不修改系统全局 Git 设置。
+- `PureLive-HarmonyOS-Runner` 计划任务在当前用户登录时启动，使用非提升权限。用户退出登录、电脑关机或网络代理不可用时不能构建。
+- 签名配置位于仓库外受限目录，构建临时复制到 checkout，结束时清除。GitHub 只接收安装包与说明，不接收独立私钥、口令或签名配置。
+- `PUBLISH_GHCR=true` 已启用；GHCR 首次发布默认私有，发布后核查可见性。
+
 ## 发布附件与验收
 
 构建后验证签名、ZIP完整性、应用包名/版本、Debug模式、arm64播放器与录制库、原生资产映射清单。同一构建产出的两种 HAP 还须通过逐项内容一致性检查；unsigned 必须不能通过包签名验证。成功后发布签名和未签名 HAP、`SHA256SUMS.txt`、`build-metadata.json` 和 `INSTALLATION.md`；完整说明写入 Release 正文。
