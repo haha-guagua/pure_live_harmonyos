@@ -97,7 +97,16 @@ HLS、其他未记录站点、IPTV、自由旋转与其他方向策略、来电�
 
    产物：`build\ohos\hap\entry-default-signed.hap`。调试 profile 通常只允许其中登记的设备安装，不是通用安装包。
 
-`ohos/build-profile.template.json5` 是无凭据模板；实际 `build-profile.json5`、证书、私钥、口令、HAP 和本地调试记录均不应提交。原上游的 Android/桌面发布工作流保存在 `.github/workflows-disabled/`，本仓库不会自动触发它们；鸿蒙构建目前通过上述本机入口执行。
+`ohos/build-profile.template.json5` 是无凭据模板；实际 `build-profile.json5`、证书、私钥、口令、HAP 和本地调试记录均不应提交。原上游的 Android/桌面发布工作流保存在 `.github/workflows-disabled/`，本仓库不会自动触发它们；鸿蒙构建使用上述本机入口，也可由专用 Runner 调用。
+
+## 自动发布与安装
+
+发布流程见 [发布约定](docs/RELEASING.md)，下载选择、签名范围与 HDC 安装方法见 [安装说明](docs/INSTALLATION.md)。
+
+- 推送 `vX.Y.Z-ohos.N` 标签后，由专用 Windows Runner 构建、验证并发布 GitHub 预览版；需要先完成 Runner 注册与外置签名配置。
+- 每版附规范的变更/验证/限制说明、HAP、SHA-256、构建元数据和安装说明。普通提交仅对发布配置做定向检查。
+- GitHub Packages 可选使用 GHCR 归档安装附件，默认关闭；手机安装包的下载入口为 Releases。
+- 当前安装包是设备限定的 Debug 签名版本，只允许签名登记设备安装；仓库公开前需重新处理签名与分发策略。
 
 ## 验证记录
 

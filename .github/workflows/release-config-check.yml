@@ -1,0 +1,29 @@
+name: Release configuration checks
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/*'
+      - 'tool/*harmonyos*'
+      - 'test/tool/test_harmonyos_release.py'
+      - 'docs/releases/**'
+  pull_request:
+    paths:
+      - '.github/workflows/*'
+      - 'tool/*harmonyos*'
+      - 'test/tool/test_harmonyos_release.py'
+      - 'docs/releases/**'
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - name: Test release validation
+        run: python3 -m unittest discover -s test/tool -p 'test_harmonyos_release.py' -v
+      - name: Check whitespace
+        run: git diff-tree --check HEAD
