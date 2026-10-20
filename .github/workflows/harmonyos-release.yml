@@ -87,7 +87,7 @@ jobs:
         with:
           name: harmonyos-release
           path: bundle
-      - name: Archive installation assets in private GHCR package
+      - name: Archive installation assets in GHCR package
         env:
           GH_TOKEN: ${{ github.token }}
           REPOSITORY: ${{ github.repository }}

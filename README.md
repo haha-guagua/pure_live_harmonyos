@@ -105,6 +105,8 @@ HLS、其他未记录站点、IPTV、自由旋转与其他方向策略、来电�
 
 发布流程见 [发布约定](docs/RELEASING.md)，下载选择、签名范围与 HDC 安装方法见 [安装说明](docs/INSTALLATION.md)。
 
+已发布 [v3.1.19-ohos.2 预览版](https://github.com/haha-guagua/pure_live_harmonyos/releases/tag/v3.1.19-ohos.2)，包含签名和未签名 HAP；同版本 [Packages 归档](https://github.com/users/haha-guagua/packages/container/package/pure_live_harmonyos) 也已生成。该次自动构建通过包完整性与签名检查，尚未对新包执行真机复测。
+
 - 推送 `vX.Y.Z-ohos.N` 标签后，由专用 Windows Runner 构建、验证并发布 GitHub 预览版。签名材料保留在仓库外的本机受限目录。
 - 每版附规范的变更/验证/限制说明、签名与未签名两种 HAP、SHA-256、构建元数据和安装说明。普通提交仅对发布配置做定向检查。
 - GitHub Packages 使用 GHCR 归档安装附件，由 `PUBLISH_GHCR` 控制；手机安装包的下载入口为 Releases。

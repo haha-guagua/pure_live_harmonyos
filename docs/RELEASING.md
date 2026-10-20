@@ -10,9 +10,11 @@
 
 每个标签必须有 `docs/releases/<标签>.md`，包含新增/修复、验证范围、已知限制、安装与升级说明。对应初版说明已提供；后续版本复制结构后填写真实变更，不能沿用旧版的真机验收结论。`.github/release.yml` 也提供 GitHub 自动生成说明的分类规则。
 
+例如准备好下一轮 `docs/releases/v3.1.19-ohos.3.md` 并提交后：
+
 ```bash
-git tag -a v3.1.19-ohos.2 -m "HarmonyOS preview 2"
-git push origin v3.1.19-ohos.2
+git tag -a v3.1.19-ohos.3 -m "HarmonyOS preview 3"
+git push origin v3.1.19-ohos.3
 ```
 
 标签应指向已合并到 `main` 并通过本轮所需检查的提交。也可以在 Actions 中选择已有版本标签手动运行。分支或不合法标签会被拒绝。
@@ -48,7 +50,13 @@ Runner 尚未注册时，工作流会等待机器，不会自动在 GitHub 云�
 - Runner 程序：`E:\DevTools\PureLiveCI\runner`；工作目录：`E:\pl-ci`，用于避免 Windows 路径过长。Runner 进程单独启用 Git `core.longpaths`，不修改系统全局 Git 设置。
 - `PureLive-HarmonyOS-Runner` 计划任务在当前用户登录时启动，使用非提升权限。用户退出登录、电脑关机或网络代理不可用时不能构建。
 - 签名配置位于仓库外受限目录，构建临时复制到 checkout，结束时清除。GitHub 只接收安装包与说明，不接收独立私钥、口令或签名配置。
-- `PUBLISH_GHCR=true` 已启用；GHCR 首次发布默认私有，发布后核查可见性。
+- `PUBLISH_GHCR=true` 已启用；当前 GHCR 归档可匿名读取，与公开 Release 的附件内容相同。包可见性与仓库可见性分别管理，不能仅凭仓库状态推断包状态。
+
+### 已完成的首次发布
+
+2026-10-20，[v3.1.19-ohos.2](https://github.com/haha-guagua/pure_live_harmonyos/releases/tag/v3.1.19-ohos.2) 的 [构建、Release 和 Packages 三个任务](https://github.com/haha-guagua/pure_live_harmonyos/actions/runs/39387605667) 全部成功。源码提交 `797acea9fedb64fc7d9f786b65c205336ea7d3c2`，两个 HAP 及三个说明/校验附件的线上大小与 SHA-256 均已和本机产物核对一致。新包未执行真机复测。
+
+同版本 GHCR 清单摘要为 `sha256:f682598122ff65269dcb1c71268e04dfb78dea508d7eb98ab74792e27d6d6df1`；匿名读取清单返回 HTTP 200。当前本机 GitHub CLI 没有 `read:packages` scope，因此没有通过 Packages REST API 读取设置页中的可见性字段；不以此声称包保持私有。Runner 发布后在线且空闲。
 
 ## 发布附件与验收
 
@@ -64,9 +72,9 @@ GitHub Packages 不提供通用 HAP 文件仓库。面向手机的下载入口�
 
 工作流另预留 GHCR 容器归档：将仓库 Actions variable `PUBLISH_GHCR` 设置为字符串 `true` 后，同一版本发布成功会把安装附件归档到 `ghcr.io/haha-guagua/pure_live_harmonyos:<版本标签>`。这是供自动化使用的文件容器，不能当作手机应用或服务启动。本机接入时已按维护者授权启用此步骤。
 
-首次发布的 Package 应检查为 Private，并保持仓库权限继承。流程使用短期 `GITHUB_TOKEN` 的 `packages:write` 权限，不需要额外提交 PAT。不要把此含设备限定签名的归档改为 Public。
+归档内容与已授权公开发布的 Release 文件一致。包的实际访问范围应独立核查；当前版本已确认可匿名读取。GitHub 的容器仓库支持公开包匿名访问，访问权限继承和包可见性有所区别，参见 [官方权限说明](https://docs.github.com/en/packages/learn-github-packages/configuring-a-packages-access-control-and-visibility)。流程使用短期 `GITHUB_TOKEN` 的 `packages:write` 权限，不需要额外提交 PAT。
 
-下载归档时先按 GitHub 文档完成 GHCR 身份认证，再提取文件：
+下载归档后提取文件；若后续将包设为私有，需先完成 GHCR 身份认证：
 
 ```bash
 docker pull ghcr.io/haha-guagua/pure_live_harmonyos:v3.1.19-ohos.2
