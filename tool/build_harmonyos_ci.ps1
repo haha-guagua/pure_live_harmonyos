@@ -1,6 +1,20 @@
 [CmdletBinding()]
 param([string] $Config = 'E:\DevTools\PureLiveCI\config.json')
 $ErrorActionPreference = 'Stop'
+function Invoke-HapSignatureVerification {
+    param([string] $Java, [string] $Signer, [string] $Hap, [string] $OutputDirectory)
+    # Windows PowerShell treats native stderr warnings as terminating errors
+    # under Stop. Capture both streams without exposing signing diagnostics,
+    # and use the verifier's actual exit code as the signature result.
+    $arguments = @('-jar', ('"' + $Signer + '"'), 'verify-app',
+        '-inFile', ('"' + $Hap + '"'),
+        '-outCertChain', ('"' + (Join-Path $OutputDirectory 'chain.cer') + '"'),
+        '-outProfile', ('"' + (Join-Path $OutputDirectory 'profile.p7b') + '"'))
+    $process = Start-Process -FilePath $Java -ArgumentList $arguments -NoNewWindow -Wait -PassThru `
+        -RedirectStandardOutput (Join-Path $OutputDirectory 'stdout.log') `
+        -RedirectStandardError (Join-Path $OutputDirectory 'stderr.log')
+    return $process.ExitCode
+}
 # This file contains paths only. Signing credentials stay in the external profile.
 if (-not (Test-Path -LiteralPath $Config)) { throw 'Configure the dedicated runner first; see docs/RELEASING.md.' }
 $settings = Get-Content -LiteralPath $Config -Raw | ConvertFrom-Json
@@ -25,15 +39,10 @@ try {
     $signer = Join-Path $settings.DevEcoStudio 'sdk\default\openharmony\toolchains\lib\hap-sign-tool.jar'
     $verifyDir = Join-Path ([IO.Path]::GetTempPath()) ('pure-live-signature-' + [guid]::NewGuid())
     [void](New-Item -ItemType Directory -Path $verifyDir)
-    $verifyLog = Join-Path $verifyDir 'verify.log'
     try {
-        & $java -jar $signer verify-app -inFile $hap -outCertChain (Join-Path $verifyDir 'chain.cer') -outProfile (Join-Path $verifyDir 'profile.p7b') *> $verifyLog
-        if ($LASTEXITCODE -ne 0) { throw 'HAP signature verification failed; raw signing diagnostics are not published.' }
-        $previousErrorPreference = $ErrorActionPreference
-        $ErrorActionPreference = 'Continue'
-        & $java -jar $signer verify-app -inFile $unsigned -outCertChain (Join-Path $verifyDir 'unsigned-chain.cer') -outProfile (Join-Path $verifyDir 'unsigned-profile.p7b') *> $verifyLog
-        $unsignedVerifyCode = $LASTEXITCODE
-        $ErrorActionPreference = $previousErrorPreference
+        $signedVerifyCode = Invoke-HapSignatureVerification -Java $java -Signer $signer -Hap $hap -OutputDirectory $verifyDir
+        if ($signedVerifyCode -ne 0) { throw 'HAP signature verification failed; raw signing diagnostics are not published.' }
+        $unsignedVerifyCode = Invoke-HapSignatureVerification -Java $java -Signer $signer -Hap $unsigned -OutputDirectory $verifyDir
         if ($unsignedVerifyCode -eq 0) { throw 'Unsigned artifact unexpectedly contains a valid package signature.' }
         $global:LASTEXITCODE = 0
         Write-Output 'Signed HAP verified; unsigned HAP correctly has no package signature.'

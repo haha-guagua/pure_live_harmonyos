@@ -6,13 +6,13 @@
 
 ## 触发与版本
 
-普通提交不会发布。推送形如 `v3.1.19-ohos.1` 的标签后，`HarmonyOS preview release` 工作流自动构建并发布 GitHub 预览版。`3.1.19` 必须与 `pubspec.yaml` 的应用版本一致，末尾数字是该应用版本的鸿蒙迭代号。版本标签不可复用或强制移动。
+普通提交不会发布。推送形如 `v3.1.19-ohos.2` 的标签后，`HarmonyOS preview release` 工作流自动构建并发布 GitHub 预览版。`3.1.19` 必须与 `pubspec.yaml` 的应用版本一致，末尾数字是该应用版本的鸿蒙迭代号。版本标签不可复用或强制移动。
 
 每个标签必须有 `docs/releases/<标签>.md`，包含新增/修复、验证范围、已知限制、安装与升级说明。对应初版说明已提供；后续版本复制结构后填写真实变更，不能沿用旧版的真机验收结论。`.github/release.yml` 也提供 GitHub 自动生成说明的分类规则。
 
 ```bash
-git tag -a v3.1.19-ohos.1 -m "HarmonyOS preview 1"
-git push origin v3.1.19-ohos.1
+git tag -a v3.1.19-ohos.2 -m "HarmonyOS preview 2"
+git push origin v3.1.19-ohos.2
 ```
 
 标签应指向已合并到 `main` 并通过本轮所需检查的提交。也可以在 Actions 中选择已有版本标签手动运行。分支或不合法标签会被拒绝。
@@ -69,8 +69,8 @@ GitHub Packages 不提供通用 HAP 文件仓库。面向手机的下载入口�
 下载归档时先按 GitHub 文档完成 GHCR 身份认证，再提取文件：
 
 ```bash
-docker pull ghcr.io/haha-guagua/pure_live_harmonyos:v3.1.19-ohos.1
-docker create --name purelive-extract ghcr.io/haha-guagua/pure_live_harmonyos:v3.1.19-ohos.1 /unused
+docker pull ghcr.io/haha-guagua/pure_live_harmonyos:v3.1.19-ohos.2
+docker create --name purelive-extract ghcr.io/haha-guagua/pure_live_harmonyos:v3.1.19-ohos.2 /unused
 docker cp purelive-extract:/release/. ./pure-live-release
 docker rm purelive-extract
 ```
