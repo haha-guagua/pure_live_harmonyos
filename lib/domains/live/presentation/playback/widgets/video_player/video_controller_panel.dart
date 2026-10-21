@@ -11,6 +11,7 @@ import 'package:pure_live/core/player/core/portrait_stream_support.dart';
 import 'package:pure_live/domains/live/domain/global_player_service.dart';
 import 'package:pure_live/domains/live/data/favorite_room_controller.dart';
 import 'package:pure_live/core/player/presentation/player_ui_controller.dart';
+import 'package:pure_live/core/player/presentation/player_hover_region.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/ui_state.dart';
 import 'package:pure_live/domains/live/presentation/playback/dialogs/play_other.dart';
 import 'package:pure_live/domains/live/presentation/playback/states/player_state.dart';
@@ -188,9 +189,10 @@ class _VideoControllerPanelState extends State<VideoControllerPanel> {
               ? Icons.volume_down
               : Icons.volume_up;
 
-          return MouseRegion(
-            onHover: (_) => controller.onMouseHoverPlayer(),
-            onExit: (_) => controller.onMouseExitPlayer(),
+          return PlayerHoverRegion(
+            enabled: PlatformUtils.isDesktop,
+            onHover: controller.onMouseHoverPlayer,
+            onExit: controller.onMouseExitPlayer,
             cursor: !controller.showController.value ? SystemMouseCursors.none : SystemMouseCursors.basic,
             child: Stack(
               children: [
@@ -401,7 +403,7 @@ class TopActionBar extends StatelessWidget {
         height: barHeight + padding.top,
         duration: const Duration(milliseconds: 300),
         child: ControlHoverRegion(
-          enabled: controller.showController.value && !controller.showLocked.value,
+          enabled: PlatformUtils.isDesktop && controller.showController.value && !controller.showLocked.value,
           onEnter: controller.onMouseEnterController,
           onExit: controller.onMouseExitController,
           child: Container(
@@ -1213,8 +1215,9 @@ class StreamChoicePane extends StatelessWidget {
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     textAlign: TextAlign.center,
-                                    style: Theme.of(context).textTheme.bodyMedium
-                                        ?.copyWith(fontWeight: selected ? FontWeight.w800 : FontWeight.w600),
+                                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                                    ),
                                   ),
                                 ),
                                 if (selected)
@@ -1266,7 +1269,7 @@ class BottomActionBar extends StatelessWidget {
         visible: shouldShow,
         height: barHeight,
         child: ControlHoverRegion(
-          enabled: shouldShow,
+          enabled: PlatformUtils.isDesktop && shouldShow,
           onEnter: controller.onMouseEnterController,
           onExit: controller.onMouseExitController,
           child: PortraitFullscreenRestoreGestureRegion(

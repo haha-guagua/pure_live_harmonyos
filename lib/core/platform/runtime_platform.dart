@@ -13,6 +13,10 @@ class RuntimePlatform {
 
   bool get isMobile => operatingSystem == 'android' || operatingSystem == 'ios' || isOhos;
 
+  // OH's application-volume API can report changes without affecting libmpv's
+  // output. Its playback controls must use the engine's gain, like desktop.
+  bool get supportsSystemVolume => operatingSystem == 'android' || operatingSystem == 'ios';
+
   // The current FFmpegKit integration has only been enabled for Android/iOS.
   // Mobile UI support must not implicitly opt a new OS into native prewarming.
   bool get supportsRecorderPrewarm => operatingSystem == 'android' || operatingSystem == 'ios';

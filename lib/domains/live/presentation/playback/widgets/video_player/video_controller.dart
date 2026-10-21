@@ -34,12 +34,13 @@ import 'package:pure_live/domains/live/presentation/playback/widgets/layout/port
 
 typedef AudioOnlyCallback = Future<void> Function(bool value);
 
-typedef EpgProgrammeLoader = Future<List<database.EpgProgramme>> Function({
-  required String sourceId,
-  required String epgId,
-  required DateTime start,
-  required DateTime end,
-});
+typedef EpgProgrammeLoader =
+    Future<List<database.EpgProgramme>> Function({
+      required String sourceId,
+      required String epgId,
+      required DateTime start,
+      required DateTime end,
+    });
 
 enum PlayerStatus { idle, loading, playing, error, disposed }
 
@@ -47,7 +48,7 @@ class PlatformHelper {
   static bool get isMobile => Platform.isAndroid || Platform.isIOS;
   static bool get isDesktop => Platform.isWindows || Platform.isLinux || Platform.isMacOS;
   static bool get supportsBrightness => app_platform.PlatformUtils.isMobile;
-  static bool get supportsVolumeController => app_platform.PlatformUtils.isMobile;
+  static bool get supportsVolumeController => app_platform.PlatformUtils.supportsSystemVolume;
   static bool get supportsBatteryMonitoring => Platform.isAndroid || Platform.isIOS;
 }
 
@@ -884,8 +885,9 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
   Future<double> brightness() async {
     if (app_platform.PlatformUtils.isOhos) {
       // OH's standard codec sends exact 0/1 as ints; normalize both numeric types.
-      final value = await const MethodChannel('github.com/aaassseee/screen_brightness')
-          .invokeMethod<num>('getApplicationScreenBrightness');
+      final value = await const MethodChannel(
+        'github.com/aaassseee/screen_brightness',
+      ).invokeMethod<num>('getApplicationScreenBrightness');
       if (value == null || !value.isFinite) throw StateError('Invalid window brightness');
       return value.toDouble().clamp(0.0, 1.0);
     }
@@ -1701,9 +1703,11 @@ class VideoController with ChangeNotifier implements DanmakuSettingsSource, Play
     if (app_platform.PlatformUtils.isOhos && _playerManager.ownsVideoController(this)) {
       final brightness = _brightnessController;
       if (brightness != null) {
-        unawaited(brightness.resetApplicationScreenBrightness().catchError((Object error, StackTrace stack) {
-          log('Reset brightness failed', name: 'VideoController.Brightness', error: error, stackTrace: stack);
-        }));
+        unawaited(
+          brightness.resetApplicationScreenBrightness().catchError((Object error, StackTrace stack) {
+            log('Reset brightness failed', name: 'VideoController.Brightness', error: error, stackTrace: stack);
+          }),
+        );
       }
     }
     _playerManager.detachVideoController(this);

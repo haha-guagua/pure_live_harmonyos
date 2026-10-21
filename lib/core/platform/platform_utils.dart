@@ -16,6 +16,8 @@ class PlatformUtils {
 
   static bool get isOhos => _runtime.isOhos;
 
+  static bool get supportsSystemVolume => _runtime.supportsSystemVolume;
+
   static bool get supportsRecorderPrewarm => _runtime.supportsRecorderPrewarm;
 
   static bool get supportsSystemMediaSession => _runtime.supportsSystemMediaSession;

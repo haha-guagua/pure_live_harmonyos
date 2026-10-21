@@ -10,6 +10,7 @@ void main() {
     expect(platform.isDesktop, isFalse);
     expect(platform.supportsRecorderPrewarm, isFalse);
     expect(platform.supportsSystemMediaSession, isFalse);
+    expect(platform.supportsSystemVolume, isFalse);
   });
 
   for (final os in ['android', 'ios']) {
@@ -21,6 +22,7 @@ void main() {
       expect(platform.isDesktop, isFalse);
       expect(platform.supportsRecorderPrewarm, isTrue);
       expect(platform.supportsSystemMediaSession, isTrue);
+      expect(platform.supportsSystemVolume, isTrue);
     });
   }
 
@@ -33,6 +35,7 @@ void main() {
       expect(platform.isDesktop, isTrue);
       expect(platform.supportsRecorderPrewarm, isFalse);
       expect(platform.supportsSystemMediaSession, isTrue);
+      expect(platform.supportsSystemVolume, isFalse);
     });
   }
 
@@ -44,5 +47,6 @@ void main() {
     expect(platform.isDesktop, isFalse);
     expect(platform.supportsRecorderPrewarm, isFalse);
     expect(platform.supportsSystemMediaSession, isFalse);
+    expect(platform.supportsSystemVolume, isFalse);
   });
 }

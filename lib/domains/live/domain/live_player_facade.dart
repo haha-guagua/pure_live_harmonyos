@@ -291,9 +291,10 @@ final class LivePlayerFacade {
   /// 滑杆显示 100% 而实际只有一半增益,用户既看不到也改不了这层衰减。
   /// 无系统音量控制的平台保留房间记忆音量。
   double _openVolumeFor(LiveRoom? room) {
-    if (app_platform.PlatformUtils.isMobile) return 1.0;
+    if (app_platform.PlatformUtils.supportsSystemVolume) return 1.0;
     return (room?.getSavedVolume() ?? 1.0).clamp(0.0, 1.0);
   }
+
   Future<void> setAudioOnly(bool audioOnly) => _controller.setAudioOnly(audioOnly);
   void setPresentationVisible(bool visible) => _controller.setPresentationVisible(visible);
 
