@@ -10,11 +10,11 @@
 
 每个标签必须有 `docs/releases/<标签>.md`，包含新增/修复、验证范围、已知限制、安装与升级说明。对应初版说明已提供；后续版本复制结构后填写真实变更，不能沿用旧版的真机验收结论。`.github/release.yml` 也提供 GitHub 自动生成说明的分类规则。
 
-例如准备好下一轮 `docs/releases/v3.1.19-ohos.3.md` 并提交后：
+例如准备好下一轮 `docs/releases/v3.1.19-ohos.4.md` 并提交后：
 
 ```bash
-git tag -a v3.1.19-ohos.3 -m "HarmonyOS preview 3"
-git push origin v3.1.19-ohos.3
+git tag -a v3.1.19-ohos.4 -m "HarmonyOS preview 4"
+git push origin v3.1.19-ohos.4
 ```
 
 标签应指向已合并到 `main` 并通过本轮所需检查的提交。也可以在 Actions 中选择已有版本标签手动运行。分支或不合法标签会被拒绝。
@@ -57,6 +57,12 @@ Runner 尚未注册时，工作流会等待机器，不会自动在 GitHub 云�
 2026-10-20，[v3.1.19-ohos.2](https://github.com/haha-guagua/pure_live_harmonyos/releases/tag/v3.1.19-ohos.2) 的 [构建、Release 和 Packages 三个任务](https://github.com/haha-guagua/pure_live_harmonyos/actions/runs/39387605667) 全部成功。源码提交 `797acea9fedb64fc7d9f786b65c205336ea7d3c2`，两个 HAP 及三个说明/校验附件的线上大小与 SHA-256 均已和本机产物核对一致。新包未执行真机复测。
 
 同版本 GHCR 清单摘要为 `sha256:f682598122ff65269dcb1c71268e04dfb78dea508d7eb98ab74792e27d6d6df1`；匿名读取清单返回 HTTP 200。当前本机 GitHub CLI 没有 `read:packages` scope，因此没有通过 Packages REST API 读取设置页中的可见性字段；不以此声称包保持私有。Runner 发布后在线且空闲。
+
+### 全屏与音量修复预览版
+
+2026-10-21，[v3.1.19-ohos.3](https://github.com/haha-guagua/pure_live_harmonyos/releases/tag/v3.1.19-ohos.3) 已发布签名/未签名 HAP 及三个说明/校验附件，全部线上大小与 SHA-256 与本机产物一致。应用提交 `d94b5bf38e994eaf7edfea64ddb217b2c599a4ac`；签名包已覆盖安装并完成本轮全屏点击和音量真机复测，详见 [适配记录](HARMONYOS_PORT.md#全屏操作栏与音量修复2026-10-21)。
+
+[原构建任务](https://github.com/haha-guagua/pure_live_harmonyos/actions/runs/39562269147) 编译、签名及双包校验通过，上传中间产物因网络失败。随后 [恢复任务](https://github.com/haha-guagua/pure_live_harmonyos/actions/runs/39566465502) 沿用该构建完成上传、Release 与 Packages 三阶段，不重复构建或移动标签。GHCR 清单摘要为 `sha256:d6e25d95b063d7589ca6e16961469f2d289fe72d7752d9d5b5d5483d7e2e46b0`，匿名读取 HTTP 200。
 
 ## 发布附件与验收
 
