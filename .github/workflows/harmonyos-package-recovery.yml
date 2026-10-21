@@ -6,14 +6,133 @@ on:
         description: Published HarmonyOS preview tag to archive without rebuilding
         required: true
         type: string
+      recover_release:
+        description: Upload the verified local build and recover its Release first
+        required: false
+        default: false
+        type: boolean
 permissions:
   contents: read
 concurrency:
   group: harmonyos-package-${{ inputs.tag }}
   cancel-in-progress: false
 jobs:
+  stage:
+    if: inputs.recover_release && github.repository == 'haha-guagua/pure_live_harmonyos' && github.actor == github.repository_owner
+    runs-on: [self-hosted, Windows, X64, pure-live-ohos]
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: Verify the retained local build without executing app code
+        shell: powershell
+        run: |
+          $ErrorActionPreference = 'Stop'
+          if ($env:RELEASE_TAG -notmatch '^v\d+\.\d+\.\d+-ohos\.[1-9]\d*$') { throw 'Invalid version tag.' }
+          $root = 'E:\pl-ci\pure_live_harmonyos\pure_live_harmonyos\local-artifacts\release'
+          $metadata = Get-Content (Join-Path $root 'build-metadata.json') -Raw | ConvertFrom-Json
+          $revision = & gh api "repos/$env:GH_REPO/commits/$env:RELEASE_TAG" --jq .sha
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot verify the immutable tag commit.' }
+          if ($metadata.tag -ne $env:RELEASE_TAG -or $metadata.commit -ne $revision) { throw 'Retained build provenance mismatch.' }
+          $expected = @("PureLive-$env:RELEASE_TAG-harmonyos-arm64-debug-device-signed.hap", "PureLive-$env:RELEASE_TAG-harmonyos-arm64-debug-unsigned.hap")
+          if (@($metadata.assets).Count -ne 2) { throw 'Expected exactly two HAPs.' }
+          foreach ($asset in $metadata.assets) {
+            if ($asset.asset -notin $expected) { throw 'Unexpected HAP filename.' }
+            $file = Join-Path $root $asset.asset
+            if ((Get-Item $file).Length -ne $asset.bytes -or (Get-FileHash $file -Algorithm SHA256).Hash.ToLowerInvariant() -ne $asset.sha256) { throw 'Retained HAP hash/size mismatch.' }
+          }
+          $allowed = $expected + @('SHA256SUMS.txt', 'build-metadata.json', 'INSTALLATION.md', 'RELEASE_NOTES.md')
+          $actual = @(Get-ChildItem $root -File | ForEach-Object Name)
+          if (Compare-Object $allowed $actual) { throw 'Unexpected or missing retained release files.' }
+          Write-Output 'Retained build provenance and hashes verified; no rebuild or signing configuration accessed.'
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        id: first_upload
+        continue-on-error: true
+        with:
+          name: harmonyos-release
+          path: E:/pl-ci/pure_live_harmonyos/pure_live_harmonyos/local-artifacts/release/*
+          retention-days: 7
+          if-no-files-found: error
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        if: steps.first_upload.outcome == 'failure'
+        with:
+          name: harmonyos-release
+          path: E:/pl-ci/pure_live_harmonyos/pure_live_harmonyos/local-artifacts/release/*
+          retention-days: 7
+          if-no-files-found: error
+          overwrite: true
+  publish:
+    needs: stage
+    if: inputs.recover_release
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: harmonyos-release
+          path: release
+      - name: Resume only the matching draft, preserving complete assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import hashlib, json, os, subprocess
+          from pathlib import Path
+          tag, repo = os.environ['RELEASE_TAG'], os.environ['GH_REPO']
+          def gh(*args):
+              return subprocess.check_output(['gh', *args], text=True).strip()
+          root = Path('release')
+          meta = json.loads((root / 'build-metadata.json').read_text())
+          assert meta['tag'] == tag
+          assert meta['commit'] == gh('api', f'repos/{repo}/commits/{tag}', '--jq', '.sha')
+          names = {a['asset'] for a in meta['assets']} | {'SHA256SUMS.txt', 'build-metadata.json', 'INSTALLATION.md'}
+          expected = {}
+          for name in names:
+              path = root / name
+              with path.open('rb') as stream:
+                  digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+              expected[name] = ('sha256:' + digest, path.stat().st_size)
+          for asset in meta['assets']:
+              assert expected[asset['asset']] == ('sha256:' + asset['sha256'], asset['bytes'])
+          inventory = json.loads(gh('api', f'repos/{repo}/releases?per_page=100'))
+          matches = [r for r in inventory if r['tag_name'] == tag]
+          if not matches:
+              gh('release', 'create', tag, '--verify-tag', '--draft', '--prerelease', '--title', f'Pure Live HarmonyOS {tag}', '--notes-file', str(root / 'RELEASE_NOTES.md'))
+          def release():
+              return json.loads(gh('api', f'repos/{repo}/releases/tags/{tag}'))
+          current = release()
+          complete = set()
+          for asset in current['assets']:
+              assert asset['name'] in expected, 'Unexpected asset; refusing mutation.'
+              if asset['state'] == 'uploaded':
+                  assert (asset['digest'], asset['size']) == expected[asset['name']], 'Existing asset differs; refusing replacement.'
+                  complete.add(asset['name'])
+              else:
+                  assert current['draft'] and asset['state'] == 'starter', 'Only unfinished draft upload placeholders may be removed.'
+                  gh('api', '--method', 'DELETE', f"repos/{repo}/releases/assets/{asset['id']}")
+          missing = names - complete
+          if missing:
+              assert current['draft'], 'Published assets must not be silently changed.'
+              gh('release', 'upload', tag, *[str(root / n) for n in sorted(missing)])
+          current = release()
+          assert {a['name'] for a in current['assets']} == names
+          for asset in current['assets']:
+              assert asset['state'] == 'uploaded'
+              assert (asset['digest'], asset['size']) == expected[asset['name']]
+          if current['draft']:
+              gh('release', 'edit', tag, '--draft=false', '--prerelease')
+          print('Published matching verified assets without rebuilding or replacing completed uploads.')
+          PY
   packages:
-    if: github.repository == 'haha-guagua/pure_live_harmonyos' && github.actor == github.repository_owner
+    needs: [stage, publish]
+    if: always() && github.repository == 'haha-guagua/pure_live_harmonyos' && github.actor == github.repository_owner && (!inputs.recover_release || needs.publish.result == 'success')
     runs-on: ubuntu-latest
     permissions:
       contents: read

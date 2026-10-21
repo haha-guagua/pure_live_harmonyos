@@ -64,7 +64,9 @@ Runner 尚未注册时，工作流会等待机器，不会自动在 GitHub 云�
 
 先建立 Draft 并上传全部附件，再转为预览版。失败不覆盖已有正式可见版本。失败后留下的 Draft 应先检查附件与日志，再处理该草稿，不得用强制移动标签掩盖失败。
 
-如果编译、签名和双包校验已通过，仅 Actions 中间产物上传因网络失败，可从本机 `local-artifacts/release` 续发同一版本：确认元数据提交与标签一致、文件 SHA-256 一致后创建 Draft，上传两个 HAP、校验清单、元数据及安装说明，核对全部线上附件后再发布，不重复编译或替换已发布版本。随后在 Actions 手动运行 `HarmonyOS package recovery`，输入该已发布版本标签。恢复任务从 Releases 下载文件，校验哈希、大小及标签提交后归档到 GHCR，不访问本机签名材料。
+如果编译、签名和双包校验已通过，仅上传因网络失败，可手动运行 `HarmonyOS package recovery` 并输入原版本标签，勾选 `recover_release`。任务只允许仓库所有者触发：本机 Runner 校验保留在 `E:\pl-ci\pure_live_harmonyos\pure_live_harmonyos\local-artifacts\release` 的元数据、标签提交、文件名和哈希，上传压缩中间产物；云端续传同一 Draft，核对全部附件后发布并归档到 GHCR。失败的中间产物上传自动重试一次。恢复过程不重新编译或访问签名配置，不替换已完成且内容不同的附件，只清理同一草稿中未完成的上传占位项。
+
+如果 Release 已发布，仅缺 Packages，保持 `recover_release=false`。此时任务直接从 Releases 下载并验证附件后归档，不使用本机 Runner。已存在的同版本容器标签会拒绝覆盖。
 
 构建日志、签名配置、证书、原始设备标识不作为附件上传。GitHub Actions 中间产物保留7天。发布包含设备调试签名信息，只允许 profile 登记的设备安装。详情见 [安装说明](INSTALLATION.md)。
 
