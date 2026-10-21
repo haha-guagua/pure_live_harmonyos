@@ -1,0 +1,86 @@
+name: HarmonyOS package recovery
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Published HarmonyOS preview tag to archive without rebuilding
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: harmonyos-package-${{ inputs.tag }}
+  cancel-in-progress: false
+jobs:
+  packages:
+    if: github.repository == 'haha-guagua/pure_live_harmonyos' && github.actor == github.repository_owner
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+      RELEASE_TAG: ${{ inputs.tag }}
+    steps:
+      - name: Download and validate the published installation assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-ohos\.[1-9][0-9]*$ ]] || exit 1
+          [[ "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" == false ]]
+          mkdir bundle
+          gh release download "$RELEASE_TAG" --dir bundle \
+            --pattern "PureLive-$RELEASE_TAG-harmonyos-arm64-debug-*.hap" \
+            --pattern SHA256SUMS.txt --pattern build-metadata.json --pattern INSTALLATION.md
+          gh release view "$RELEASE_TAG" --json body --jq .body > bundle/RELEASE_NOTES.md
+          gh api "repos/$GH_REPO/commits/$RELEASE_TAG" --jq .sha > revision.txt
+          python3 - <<'PY'
+          import hashlib, json, os
+          from pathlib import Path
+          root = Path('bundle')
+          metadata = json.loads((root / 'build-metadata.json').read_text())
+          tag = os.environ['RELEASE_TAG']
+          assert metadata['tag'] == tag
+          assert metadata['commit'] == Path('revision.txt').read_text().strip()
+          expected = {
+              f'PureLive-{tag}-harmonyos-arm64-debug-device-signed.hap': 'device-bound-debug',
+              f'PureLive-{tag}-harmonyos-arm64-debug-unsigned.hap': 'unsigned',
+          }
+          assert {a['asset']: a['signing'] for a in metadata['assets']} == expected
+          assert {p.name for p in root.glob('*.hap')} == set(expected)
+          sums = (root / 'SHA256SUMS.txt').read_text()
+          for asset in metadata['assets']:
+              path = root / asset['asset']
+              assert path.stat().st_size == asset['bytes']
+              with path.open('rb') as stream:
+                  digest = hashlib.file_digest(stream, 'sha256').hexdigest()
+              assert digest == asset['sha256']
+              assert f"{digest}  {path.name}" in sums.splitlines()
+          print('Published HAP hashes, sizes and tag commit verified.')
+          PY
+      - name: Archive the verified release in GHCR
+        shell: bash
+        run: |
+          set -euo pipefail
+          registry_path="ghcr.io/${GH_REPO,,}"
+          revision="$(cat revision.txt)"
+          printf '%s' "$GH_TOKEN" | docker login ghcr.io --username "$GITHUB_ACTOR" --password-stdin
+          trap 'docker logout ghcr.io >/dev/null 2>&1' EXIT
+          if existing_manifest="$(docker manifest inspect "$registry_path:$RELEASE_TAG" 2>&1)"; then
+            echo 'Package version already exists; refusing to replace it.'
+            exit 1
+          else
+            if [[ "$existing_manifest" != *'manifest unknown'* && "$existing_manifest" != *'no such manifest'* ]]; then
+              echo 'Could not confirm that the package version is absent.'
+              exit 1
+            fi
+          fi
+          printf 'FROM scratch\nCOPY . /release/\n' > /tmp/pure-live-package.Dockerfile
+          docker build --file /tmp/pure-live-package.Dockerfile \
+            --label "org.opencontainers.image.source=https://github.com/$GH_REPO" \
+            --label "org.opencontainers.image.revision=$revision" \
+            --label "org.opencontainers.image.version=$RELEASE_TAG" \
+            --label "org.opencontainers.image.description=HarmonyOS installation assets; archive only, not a runnable app" \
+            --tag "$registry_path:$RELEASE_TAG" bundle
+          docker push "$registry_path:$RELEASE_TAG"
