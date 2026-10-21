@@ -105,8 +105,12 @@ jobs:
           matches = [r for r in inventory if r['tag_name'] == tag]
           if not matches:
               gh('release', 'create', tag, '--verify-tag', '--draft', '--prerelease', '--title', f'Pure Live HarmonyOS {tag}', '--notes-file', str(root / 'RELEASE_NOTES.md'))
+          inventory = json.loads(gh('api', f'repos/{repo}/releases?per_page=100'))
+          matching = [r for r in inventory if r['tag_name'] == tag]
+          assert len(matching) == 1, 'Expected exactly one matching release.'
+          release_id = matching[0]['id']
           def release():
-              return json.loads(gh('api', f'repos/{repo}/releases/tags/{tag}'))
+              return json.loads(gh('api', f'repos/{repo}/releases/{release_id}'))
           current = release()
           complete = set()
           for asset in current['assets']:
