@@ -4,6 +4,10 @@ import 'dart:io';
 import 'package:ffi/ffi.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// The device reader, replaceable by callers that provide their own hardware.
+final deviceBatteryReaderProvider = Provider<Future<int?> Function()>((ref) => DeviceBattery.level);
 
 /// The battery level the fullscreen bars show beside the clock (3.x
 /// `BatteryInfo` via battery_plus; docs/A-界面设计/A07-直播间界面/A07.4-横屏全屏 change 4): Android
@@ -18,7 +22,9 @@ abstract final class DeviceBattery {
   static Future<int?> level() async {
     if (kIsWeb) return null;
     try {
-      if (Platform.isAndroid) return _valid(await _channel.invokeMethod<int>('getBattery'));
+      if (Platform.isAndroid || Platform.operatingSystem == 'ohos') {
+        return _valid(await _channel.invokeMethod<int>('getBattery'));
+      }
       if (Platform.isWindows) return _windows();
       if (Platform.isLinux) return await _linux();
     } on Object {

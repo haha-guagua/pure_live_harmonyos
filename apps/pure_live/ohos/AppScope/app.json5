@@ -1,0 +1,10 @@
+{
+  "app": {
+    "bundleName": "com.mystyle.purelive.next.ohos",
+    "vendor": "PureLive",
+    "versionCode": 5132,
+    "versionName": "5.5.0",
+    "icon": "$media:app_icon",
+    "label": "$string:app_name"
+  }
+}

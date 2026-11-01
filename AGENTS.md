@@ -1,3 +1,18 @@
+# HarmonyOS adaptation scope
+
+This checkout adapts `wzgrx/PureLive` at `fe4fdebf95fb6f73bcf9f07be058ca7ea49600a5`.
+Work on `next-harmonyos`; origin is `haha-guagua/pure_live_harmonyos`, upstream is read-only.
+The old adaptation remains in `/home/gdx/code/pure_live_harmonyos` and origin/main.
+Build HarmonyOS only. Do not install or connect to the phone before the user's Monday device session.
+Use a separate bundle `com.mystyle.purelive.next.ohos` to preserve the old app and data.
+Keep all signing material outside Git. Do not alter upstream version feeds or dispatch upstream platform workflows.
+The HarmonyOS toolchain, checks and device matrix are owned by `tools/harmonyos/` and task X06.1.
+`tools/harmonyos/gate.ps1` is this fork's native-host equivalent of `tools/gate/gate.sh --all`: retain every workspace member's format/analyze/tests and repository checks, with explicit OH SDK and native bundle validation.
+One heavy task at a time; use the existing shared Windows resource guard.
+Source/build verification is separate from real-device acceptance; never mark phone tests passed without a device run.
+
+---
+
 # 仓库说明
 
 纯粹直播（Pure Live）4.x：在 3.x（`v3.2.11`）的代码上重构的第三方直播聚合应用。4.0.0（Android）已发布。

@@ -1,0 +1,41 @@
+{
+  "sdk": "3.47.8-ohos-1.0.0",
+  "revision": "9d2002f78070ca6eb1fea073eb1baac07e287089",
+  "dart": "3.13.3",
+  "engine": "cf636b1dfb818dd6a3ff16e390e93b1a036969c8",
+  "host": "windows-x64",
+  "target": "ohos-arm64",
+  "minimumApi": 24,
+  "targetApi": 26,
+  "bundle": "com.mystyle.purelive.next.ohos",
+  "upstream": "fe4fdebf95fb6f73bcf9f07be058ca7ea49600a5",
+  "semanticsPatch": "tools/flutter_sdk/flutter-193372.patch",
+  "frameworkFiles": {
+    "packages/flutter/lib/src/semantics/semantics.dart": "e84a373bbe4df480900a712a29c08dc4122b6fdc00419d8728818cb4e0ec11cf",
+    "packages/flutter/test/semantics/semantics_update_test.dart": "3b3ec482fa9f3d34886296305932559f3b4fa1e30e6647a8e53bd05a225149a1",
+    "packages/flutter_tools/lib/src/artifacts.dart": "503c581ae5719ddf7a46b6fb573913d8c527027b4e843f91c5959e3056e33771",
+    "packages/flutter/lib/src/widgets/_window_io.dart": "e6f186f040accd016af9694508b7ad5797c654a44d4040f80aee81c18162662d",
+    "packages/flutter/lib/src/widgets/_window_ohos.dart": "c412f18116a635b6ef87969de9d43af047e6588164e86b65576410bb31f75994",
+    "packages/flutter/test/widgets/button_tester.dart": "16de9e199ce80efce2756faf33b4c0c9fc9e184a3bd4bee701b22ccaac4c5edc",
+    "packages/flutter_tools/lib/src/compile.dart": "0ddd2e729a585832351116896ca83edb2d34d0a0b8c8acf02adfb712443cd654"
+  },
+  "hostKernel": {
+    "source": "https://storage.googleapis.com/flutter_infra_release/flutter/cf636b1dfb818dd6a3ff16e390e93b1a036969c8/flutter_patched_sdk.zip",
+    "archiveSha256": "ec41d20e6ce108446bea70d8ae9624fcebbe825919cdcf3e3d14dc5bc8b680ec",
+    "path": "bin/cache/artifacts/engine/host_common/flutter_patched_sdk/platform_strong.dill",
+    "sha256": "abaace6dc36fd8def1cf65de612efd0b09d4855636b52ffc3dc51168bbb1cede"
+  },
+  "hostRuntime": {
+    "source": "https://storage.googleapis.com/flutter_infra_release/flutter/cf636b1dfb818dd6a3ff16e390e93b1a036969c8/dart-sdk-windows-x64.zip",
+    "archiveSha256": "e66d48a3eb3cb6a88fe648d57a12acda10dad1a0ad41ad8a07d1722725d26280",
+    "path": "bin/cache/host-runtime/dartaotruntime.exe",
+    "sha256": "571488e253924b2d6ec010d3a87d59372c3a9b09c06792a6f7ca80a1e4aa0c77",
+    "dart": "3.13.7"
+  },
+  "hostFrontend": {
+    "path": "bin/cache/artifacts/engine/windows-x64/frontend_server_aot.dart.snapshot",
+    "sha256": "33f99e5f40bfa716b68fceee5d2b3362aca863716d2a4a6ec0fc2b0e6a664b1c"
+  },
+  "ohosEngineStamp": "10a8d012d86cd7ee13e0acc859fea796c8a01764",
+  "ohosHarStamp": "e068c218c3d7f693cc86df27fe8c1bb6d066823b"
+}

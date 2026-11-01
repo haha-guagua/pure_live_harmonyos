@@ -12,7 +12,9 @@ import 'package:path/path.dart' as p;
 /// Windows DPAPI, or on Linux a key file in [dataRoot]. Before 5.4.1 Linux
 /// had none and the app could not start there ("No secret store on linux").
 SecretCipher platformSecretCipher(Directory dataRoot) {
-  if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS) return NativeChannelCipher();
+  if (Platform.isAndroid || Platform.isIOS || Platform.isMacOS || Platform.operatingSystem == 'ohos') {
+    return NativeChannelCipher();
+  }
   if (Platform.isWindows) return WindowsDpapiCipher();
   return KeyFileCipher(File(p.join(dataRoot.path, KeyFileCipher.fileName)));
 }

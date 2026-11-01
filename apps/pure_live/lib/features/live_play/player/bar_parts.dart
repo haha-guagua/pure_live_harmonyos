@@ -27,18 +27,18 @@ const double batteryFontSize = 11;
 /// (3.x 35 × 15, a little more for the larger figure) with the percentage;
 /// nothing on a device without a battery (U.2c change 4). Read once and then
 /// every minute; redrawn only when it changes.
-class PlayerBattery extends StatefulWidget {
+class PlayerBattery extends ConsumerStatefulWidget {
   /// Creates the battery.
-  const new({this.read = DeviceBattery.level, super.key});
+  const new({this.read, super.key});
 
   /// Reads the level (percent), null for none.
-  final Future<int?> Function() read;
+  final Future<int?> Function()? read;
 
   @override
-  State<PlayerBattery> createState() => _PlayerBatteryState();
+  ConsumerState<PlayerBattery> createState() => _PlayerBatteryState();
 }
 
-class _PlayerBatteryState extends State<PlayerBattery> {
+class _PlayerBatteryState extends ConsumerState<PlayerBattery> {
   int? _level;
   Timer? _poll;
 
@@ -50,7 +50,8 @@ class _PlayerBatteryState extends State<PlayerBattery> {
   }
 
   Future<void> _refresh() async {
-    final level = await widget.read();
+    final reader = widget.read ?? ref.read<Future<int?> Function()>(deviceBatteryReaderProvider);
+    final level = await reader();
     if (mounted && level != _level) setState(() => _level = level);
   }
 

@@ -24,6 +24,15 @@ import 'package:pure_live/tv/widgets/tv_focusable.dart';
 /// The page's clock, for file names (tests replace it).
 final Provider<DateTime Function()> backupClockProvider = Provider<DateTime Function()>((ref) => DateTime.now);
 
+/// Lists and deletes files through the active storage backend.
+final backupListFilesProvider = Provider<Future<List<LocalBackupFile>> Function(Directory)>((ref) => listBackupFiles);
+
+/// Deletes a file through the active storage backend.
+final backupDeleteFileProvider = Provider<Future<void> Function(File)>(
+  (ref) =>
+      (file) async => await file.delete(),
+);
+
 /// The folder backups go to when none was picked (tests replace it).
 final Provider<Future<Directory> Function()> backupDefaultFolderProvider = Provider<Future<Directory> Function()>(
   (ref) => defaultBackupFolder,
@@ -129,7 +138,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     List<LocalBackupFile> files;
     var failed = false;
     try {
-      files = await listBackupFiles(Directory(folder));
+      files = await ref.read(backupListFilesProvider)(Directory(folder));
     } on FileSystemException {
       files = const [];
       failed = true;
@@ -220,7 +229,7 @@ class _BackupPageState extends ConsumerState<BackupPage> {
     if (!confirmed || !mounted) return;
     await _run(_Action.file, () async {
       try {
-        await entry.file.delete();
+        await ref.read(backupDeleteFileProvider)(entry.file);
         AppNavigator.toast(i18n('webdav_delete_success'));
       } on FileSystemException {
         AppNavigator.toast(i18n('webdav_delete_failed'));

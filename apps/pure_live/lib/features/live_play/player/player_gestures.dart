@@ -80,6 +80,8 @@ class PlayerGestureLayer extends StatefulWidget {
 class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   GestureLevel? _showing;
   double _level = 0;
+  // Finger movement accumulates independently of the system's discrete steps.
+  double _dragLevel = 0;
   Timer? _hide;
   Timer? _save;
 
@@ -108,9 +110,12 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   /// null (research 2026-10-02 S9: a touch screen sampling at 240 or 480 Hz
   /// moves several times a frame; the system hears the latest once).
   int? _sending;
+  int _volumeWriteRevision = 0;
+  StreamSubscription<double>? _volumeEvents;
 
   /// What the drag set and the system has not heard yet.
   GestureLevel? _unsent;
+  double _unsentLevel = 0;
 
   bool get _systemVolume => DeviceControls.available;
 
@@ -123,6 +128,13 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   void initState() {
     super.initState();
     _trace('attached');
+    if (DeviceControls.available) {
+      _volumeEvents = DeviceControls.volumeChanges.listen((value) {
+        if (mounted && _showing == GestureLevel.volume && _dragging != GestureLevel.volume && !_reading) {
+          setState(() => _level = value);
+        }
+      });
+    }
   }
 
   @override
@@ -135,8 +147,9 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   @override
   void dispose() {
     _dragEpoch++;
+    unawaited(_volumeEvents?.cancel());
     if (_sending case final id?) SchedulerBinding.instance.cancelFrameCallbackWithId(id);
-    if (_unsent case final kind?) unawaited(_send(kind, _level));
+    if (_unsent case final kind?) unawaited(_send(kind, _unsentLevel));
     _hide?.cancel();
     if (_save?.isActive ?? false) {
       _save!.cancel();
@@ -156,10 +169,10 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
     });
   }
 
-  Future<double> _current(GestureLevel kind) async => switch (kind) {
-    GestureLevel.volume when _systemVolume => await DeviceControls.volume() ?? widget.controller.volume,
+  Future<double?> _current(GestureLevel kind) async => switch (kind) {
+    GestureLevel.volume when _systemVolume => await DeviceControls.volume(),
     GestureLevel.volume => widget.controller.volume,
-    GestureLevel.brightness => await DeviceControls.brightness() ?? 0.5,
+    GestureLevel.brightness => await DeviceControls.brightness(),
   };
 
   Future<void> _apply(GestureLevel kind, double value) async {
@@ -176,11 +189,12 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
     }
     _show(kind, _level);
     _unsent = kind;
+    _unsentLevel = _level;
     _sending ??= SchedulerBinding.instance.scheduleFrameCallback((_) {
       _sending = null;
       final unsent = _unsent;
       _unsent = null;
-      if (unsent != null && mounted) unawaited(_send(unsent, _level));
+      if (unsent != null && mounted) unawaited(_send(unsent, _unsentLevel));
     });
   }
 
@@ -188,7 +202,11 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
   Future<void> _send(GestureLevel kind, double level) async {
     switch (kind) {
       case GestureLevel.volume when _systemVolume:
-        await DeviceControls.setVolume(level);
+        final revision = ++_volumeWriteRevision;
+        final actual = await DeviceControls.setVolume(level);
+        if (mounted && revision == _volumeWriteRevision && actual != null && _showing == GestureLevel.volume) {
+          setState(() => _level = actual);
+        }
       case GestureLevel.volume:
         await widget.controller.setVolume(level);
         // The player's volume is the room's: kept once the wheel rests.
@@ -212,7 +230,7 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
       return;
     }
     final now = _showing == GestureLevel.volume ? _level : await _current(GestureLevel.volume);
-    await _apply(GestureLevel.volume, now + delta);
+    if (now != null) await _apply(GestureLevel.volume, now + delta);
   }
 
   void _onDragStart(DragStartDetails details) {
@@ -269,8 +287,13 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
       _current(kind).then((value) {
         if (!mounted || epoch != _dragEpoch || !widget.enabled) return;
         _reading = false;
+        if (value == null) {
+          _dragging = null;
+          return;
+        }
         _trace('baseline', kind: kind);
         _level = (value + _pendingDelta).clamp(_pendingMinimum, _pendingMaximum);
+        _dragLevel = _level;
         // A normal release keeps the moves already made. Cancellation,
         // locking, disposal or a newer drag invalidate this read instead.
         if (_pendingMoved) _applySoon(kind);
@@ -315,7 +338,8 @@ class PlayerGestureLayerState extends State<PlayerGestureLayer> {
       _pendingMaximum = (_pendingMaximum + delta).clamp(0.0, 1.0);
       return;
     }
-    _level = (_level + delta).clamp(0.0, 1.0);
+    _dragLevel = (_dragLevel + delta).clamp(0.0, 1.0);
+    _level = _dragLevel;
     _applySoon(kind);
   }
 

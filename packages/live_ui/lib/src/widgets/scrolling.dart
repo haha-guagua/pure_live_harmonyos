@@ -17,7 +17,7 @@ class PureLiveScrollPhysics extends ScrollPhysics {
   const new({super.parent});
 
   static bool get _touch => switch (defaultTargetPlatform) {
-    TargetPlatform.android || TargetPlatform.iOS || TargetPlatform.fuchsia => true,
+    TargetPlatform.android || TargetPlatform.iOS || TargetPlatform.ohos || TargetPlatform.fuchsia => true,
     _ => false,
   };
 

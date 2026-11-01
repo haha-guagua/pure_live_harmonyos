@@ -36,7 +36,7 @@ List<String> recordingsBeside(String path, {int limit = 500}) {
   } on FileSystemException {
     // Unreadable: only the file itself.
   }
-  if (!files.contains(path)) files.add(path);
+  if (!files.any((file) => p.equals(file, path))) files.add(path);
   // The date and time folders sort as they were recorded.
   files.sort((a, b) => p.relative(a, from: room.path).compareTo(p.relative(b, from: room.path)));
   return files;

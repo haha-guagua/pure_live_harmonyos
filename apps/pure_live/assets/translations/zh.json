@@ -782,6 +782,7 @@
     "gpu_decode": "优先使用 GPU 硬件解码",
     "grant_install_permission": "请授予安装权限后再尝试下载安装",
     "hardware_decoder": "硬件解码器(--hwdec)",
+    "harmonyos_managed_directory": "当前使用应用内目录，可通过分享导出文件；暂不支持切换外部目录。",
     "hd_recommend": "标清/高清推荐",
     "header_typography_group": "标题及核心组件层级",
     "height": "高度",

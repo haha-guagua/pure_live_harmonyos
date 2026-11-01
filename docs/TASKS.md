@@ -2,7 +2,7 @@
 
 # 任务清单
 
-共 20 组、109 个子分类、601 个任务。编号规则见 [PROCESS.md](PROCESS.md) 第 1 节，进度见 [STATUS.md](STATUS.md)，旧编号对照见 [MAPPING.md](MAPPING.md)。
+共 20 组、110 个子分类、602 个任务。编号规则见 [PROCESS.md](PROCESS.md) 第 1 节，进度见 [STATUS.md](STATUS.md)，旧编号对照见 [MAPPING.md](MAPPING.md)。
 
 ## A 界面设计
 
@@ -1089,7 +1089,7 @@ HTTP 和 WebSocket、请求头、压缩、代理和镜像、原生 HTTP 通道�
 
 Windows、Linux、电视、苹果平台的客户端专属工作（打包、原生、平台差异）；各端的界面在 A16～A18。
 
-`███████████████████░` 97%
+`███████████████████░` 96%
 
 ### [X01 Windows](X-多端客户端/X01-Windows/README.md)
 
@@ -1129,6 +1129,12 @@ Windows、Linux、电视、苹果平台的客户端专属工作（打包、原�
 |---|---|---|---|---|---|---|
 | X05.1 | macOS 工程和构建：生成 macos/、沙盒和权限、Keychain 加密、桌面外壳，能在 Mac 上运行 | 功能 | 第三档 | 完成 | — | [设计或说明](X-多端客户端/X05-macOS/X05.1-macOS工程和构建/README.md)、[任务书](X-多端客户端/X05-macOS/X05.1-macOS工程和构建/brief.md) |
 | X05.2 | macOS 签名、公证和分发，应用内更新 | 发布 | 第三档 | 不做 | — | [设计或说明](X-多端客户端/X05-macOS/X05.2-macOS签名和分发/README.md)、[任务书](X-多端客户端/X05-macOS/X05.2-macOS签名和分发/brief.md) |
+
+### [X06 HarmonyOS](X-多端客户端/X06-HarmonyOS/README.md)
+
+| 编号 | 任务 | 类型 | 档位 | 状态 | 阶段 | 资料 |
+|---|---|---|---|---|---|---|
+| X06.1 | PureLive重构版鸿蒙手机移植与历史故障回归 | 工程 | 第一档 | 待真机 | 3/3 | [设计或说明](X-多端客户端/X06-HarmonyOS/X06.1-重构版鸿蒙移植/README.md)、[任务书](X-多端客户端/X06-HarmonyOS/X06.1-重构版鸿蒙移植/brief.md)、[记录](X-多端客户端/X06-HarmonyOS/X06.1-重构版鸿蒙移植/record.md) |
 
 ## Y 发布和运营
 

@@ -12,6 +12,24 @@ import 'package:http2/http2.dart';
 import 'package:live_net/live_net.dart';
 import 'package:test/test.dart';
 
+Future<ProcessResult> _certificate(List<String> arguments, Directory folder) async {
+  try {
+    return await Process.run('openssl', arguments);
+  } on ProcessException {
+    if (!Platform.isWindows) rethrow;
+    // The Windows host gate already uses WSL for its Bash regressions. Its
+    // OpenSSL can also generate these ephemeral localhost fixtures.
+    final converted = await Process.run('wsl.exe', ['--exec', 'wslpath', '-u', folder.path]);
+    if (converted.exitCode != 0) return converted;
+    final unixFolder = (converted.stdout as String).trim();
+    return await Process.run('wsl.exe', [
+      '--exec',
+      'openssl',
+      for (final argument in arguments) argument.replaceAll(folder.path, unixFolder),
+    ]);
+  }
+}
+
 void main() {
   late Directory folder;
   late SecurityContext serverContext;
@@ -21,7 +39,7 @@ void main() {
   setUpAll(() async {
     folder = Directory.systemTemp.createTempSync('http2_test');
     try {
-      final made = await Process.run('openssl', [
+      final made = await _certificate([
         'req',
         '-x509',
         '-newkey',
@@ -37,7 +55,7 @@ void main() {
         '${folder.path}/key.pem',
         '-out',
         '${folder.path}/cert.pem',
-      ]);
+      ], folder);
       openssl = made.exitCode == 0;
     } on ProcessException {
       openssl = false;

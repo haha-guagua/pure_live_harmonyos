@@ -18,7 +18,10 @@ void main(List<String> arguments) async {
     );
     final catalog = await Bundle.read(catalogFile);
     output.dependencies.add(catalogFile.uri);
-    final target = '${os.name}_${architecture.name}';
+    final compiler = input.config.code.cCompiler?.compiler;
+    final isOhos = os.name == 'ohos' || (compiler?.toString().toLowerCase().contains('openharmony') ?? false);
+    final target = '${isOhos ? 'ohos' : os.name}_${architecture.name}';
+    final nativeRoot = isOhos && compiler != null ? File.fromUri(compiler).parent.parent.parent.path : null;
     final bundle = catalog[target];
     if (bundle == null) {
       throw UnsupportedError('No media-kit native bundle for $target');
@@ -102,6 +105,12 @@ void main(List<String> arguments) async {
       name: 'media_kit_event_loop',
       assetName: 'src/player/native/core/native_event_loop_bindings.dart',
       sources: ['src/native_event_loop.c', 'src/native_library.c'],
+      flags: [
+        if (isOhos && nativeRoot != null) ...[
+          '--target=aarch64-linux-ohos',
+          '--sysroot=${p.join(nativeRoot, 'sysroot')}',
+        ],
+      ],
       includes: [
         File(
           Platform.resolvedExecutable,

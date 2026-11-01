@@ -29,6 +29,8 @@ dependencies:
   cached_network_image: ^4.0.5
   # Network type: mobile-data notice, offline precheck, mobile-data quality.
   connectivity_plus: ^7.3.1
+  connectivity_plus_harmonyos:
+    path: ../../third_party/connectivity_plus_harmonyos
   # Streams SHA-256 over final update packages; already locked by the workspace.
   crypto: 3.0.8
   # The IPTV tables in live_store's database (M12.1).
@@ -89,6 +91,7 @@ dependencies:
   path: ^1.9.1
   # The data folder and 3.x's folders.
   path_provider: ^2.1.6
+  path_provider_ohos: 2.2.1
   # Whether the remembered window place is still on a display.
   screen_retriever: ^0.3.0
   # The system share sheet of the room menu.
@@ -99,6 +102,7 @@ dependencies:
   tray_manager: ^0.8.0
   # CC's official entries open in the browser (3.x AppNavigator.toCategoryDetail).
   url_launcher: ^6.3.2
+  url_launcher_ohos: 6.3.0
   # 3.x's install folders from the uninstall entries (the 3.x data import)
   # and the Windows start-up entry.
   win32_registry: ^3.0.3

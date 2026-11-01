@@ -90,6 +90,7 @@ Future<(AppServices, RoomsSite)> _pump(
         ffmpeg: _NoRecordProcess(),
       );
       await recording.loadSettings();
+      await recording.storage.recordDirectory();
       _recorders[services] = (recording, folder);
     });
   }
@@ -144,6 +145,19 @@ Future<void> _pick(WidgetTester tester, String id) async {
   await tester.ensureVisible(_key('multiview-pick-bilibili:$id'));
   await tester.tap(_key('multiview-pick-bilibili:$id'));
   await _wait(tester);
+}
+
+Future<void> _waitRecordFolder(WidgetTester tester) async {
+  await tester.scrollUntilVisible(
+    _key('record-panel-settings'),
+    200,
+    scrollable: find.descendant(of: _key('record-panel-list'), matching: find.byType(Scrollable)).first,
+  );
+  for (var attempt = 0; attempt < 10 && _key('record-panel-folder').evaluate().isEmpty; attempt++) {
+    await tester.runAsync(() => Future<void>.delayed(const Duration(seconds: 1)));
+    await tester.pump();
+  }
+  expect(_key('record-panel-folder'), findsOneWidget, reason: 'the directory read completes before closing its panel');
 }
 
 Future<void> _close(WidgetTester tester, AppServices services) async {
@@ -215,6 +229,7 @@ void main() {
     final panel = tester.widget<RoomRecordPanel>(find.byType(RoomRecordPanel));
     expect(panel.room().roomId, '1', reason: 'record the room the user selected, not an automatic replacement');
     expect(controls.controller.cells[controls.index].room?.roomId, '3');
+    await _waitRecordFolder(tester);
     panel.onClose();
     await tester.pumpAndSettle();
     await _close(tester, services);
@@ -236,6 +251,7 @@ void main() {
         expect(panel.room().roomId, '$position');
         expect(find.text('开始录制'), findsOneWidget);
         expect(tester.takeException(), isNull);
+        await _waitRecordFolder(tester);
         panel.onClose();
         await tester.pumpAndSettle();
         expect(_cellView(tester, 1).cell.session, same(sessions[0]));

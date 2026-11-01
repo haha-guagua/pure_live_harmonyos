@@ -527,7 +527,7 @@ void main() {
     expect(outside.played, [file.path]);
     await tester.tap(_inCard('s', _key('record-card-folder')));
     await _settle(tester);
-    expect(outside.opened.single.toFilePath(), '${p.dirname(file.path)}/');
+    expect(outside.opened.single.toFilePath(), Uri.directory(p.dirname(file.path)).toFilePath());
     await tester.tap(_inCard('f', _key('record-panel-reason')));
     await _frames(tester);
     expect(find.text('失败原因'), findsOneWidget);

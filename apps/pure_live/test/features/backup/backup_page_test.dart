@@ -145,6 +145,8 @@ void main() {
       bool opensFolder = false,
       bool tv = false,
       Future<void> Function()? seed,
+      Future<List<LocalBackupFile>> Function(Directory)? listFiles,
+      Future<void> Function(File)? deleteFile,
     }) async {
       tester.view
         ..physicalSize = size
@@ -170,6 +172,8 @@ void main() {
             backupDefaultFolderProvider.overrideWithValue(() async => made),
             backupPickerProvider.overrideWithValue((_, {required initial, required pickFile}) async => pick?.call()),
             backupOpensFolderProvider.overrideWithValue(opensFolder),
+            if (listFiles != null) backupListFilesProvider.overrideWithValue(listFiles),
+            if (deleteFile != null) backupDeleteFileProvider.overrideWithValue(deleteFile),
           ],
           child: LiveUiScope(
             config: LiveUiConfig(strings: strings.ui),
@@ -256,6 +260,11 @@ void main() {
       expect(find.text(folder.path), findsOneWidget);
 
       await tester.tap(find.text('创建备份'));
+      await _settle(tester);
+      for (var i = 0; i < 10 && _toasts.isEmpty; i++) {
+        await tester.runAsync(() => Future<void>.delayed(const Duration(seconds: 1)));
+        await tester.pump();
+      }
       await _settle(tester);
       final file = File(p(folder, 'purelive_2026-10-01T20_00_00.txt'));
       expect(file.existsSync(), isTrue);
@@ -557,9 +566,8 @@ void main() {
         tv: true,
         size: const Size(960, 540),
         seed: () async => await File(p(folder, name)).writeAsString(jsonEncode(_legacyBackup([_room('1')]))),
+        deleteFile: (file) async => throw FileSystemException('Permission denied', file.path, const OSError('', 13)),
       );
-      addTearDown(() => tester.runAsync(() => Process.run('chmod', ['755', folder.path])));
-      await tester.runAsync(() => Process.run('chmod', ['555', folder.path]));
       final file = find.byKey(const ValueKey('backup-file-$name'));
       await _remoteDownTo(tester, file);
       final bodyFocus = FocusManager.instance.primaryFocus;
@@ -580,13 +588,19 @@ void main() {
     });
 
     testWidgets('a folder that cannot be read says so and retries', (tester) async {
-      await pump(tester);
-      await tester.runAsync(() => Process.run('chmod', ['000', folder.path]));
-      addTearDown(() => tester.runAsync(() => Process.run('chmod', ['755', folder.path])));
+      var denied = false;
+      await pump(
+        tester,
+        listFiles: (folder) async {
+          if (denied) throw FileSystemException('Permission denied', folder.path, const OSError('', 13));
+          return await listBackupFiles(folder);
+        },
+      );
+      denied = true;
       await refresh(tester);
       expect(find.byKey(const ValueKey('backup-files-error')), findsOneWidget);
       expect(find.text('无法读取备份目录'), findsOneWidget);
-      await tester.runAsync(() => Process.run('chmod', ['755', folder.path]));
+      denied = false;
       await tester.tap(find.byKey(const ValueKey('backup-files-retry')));
       await _settle(tester);
       expect(find.byKey(const ValueKey('backup-files-empty')), findsOneWidget);

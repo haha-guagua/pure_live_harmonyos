@@ -44,6 +44,7 @@ app.*.map.json
 **/*.key
 **/*.csr
 **/*.p12
+**/*.p7b
 **/*.mobileprovision
 **/*.provisionprofile
 **/*.p8
@@ -54,3 +55,16 @@ app.*.map.json
 
 # Agent worktrees (Claude Code)
 /.claude/worktrees/
+
+# HarmonyOS generated and local-only files
+**/ohos/build-profile.json5
+!**/ohos/entry/build-profile.json5
+**/ohos/local.properties
+**/ohos/.hvigor/
+**/ohos/oh_modules/
+**/ohos/entry/oh_modules/
+**/ohos/entry/libs/**/*.so
+**/ohos/entry/src/main/ets/plugins/GeneratedPluginRegistrant.ets
+**/*.hap
+**/*.app
+**/*.har

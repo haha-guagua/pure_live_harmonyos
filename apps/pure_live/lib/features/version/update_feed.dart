@@ -466,6 +466,7 @@ List<Uri> boundedDownloadSources(Iterable<Uri> sources, {required Uri canonical,
 
 /// The update platform key of this device (3.x `_currentPlatformKey`).
 String currentUpdatePlatform() {
+  if (defaultTargetPlatform == TargetPlatform.ohos) return 'ohos';
   if (Platform.isWindows) return 'windows';
   if (Platform.isAndroid) return 'android';
   if (Platform.isMacOS) return 'macos';
@@ -530,7 +531,9 @@ class UpdateFeed {
   /// good answers, and a fast stale mirror cannot defeat a newer response.
   /// This is not proof that an unreachable origin has no newer publication.
   Future<UpdateInfo?> latest({Duration timeout = const Duration(seconds: 10)}) async {
-    if (!isActive) return null;
+    // The preview has a separate bundle and no published HAP feed yet.
+    // Upstream APK releases cannot update this installation.
+    if (!isActive || platform == 'ohos') return null;
     final sources = _sources('assets/version.json');
     final tokens = [for (final _ in sources) CancelToken()];
     _requests.addAll(tokens);
@@ -576,6 +579,7 @@ class UpdateFeed {
   /// arrive; the unfiltered history browser retains its original behavior.
   Future<List<ReleaseInfo>?> releases({Duration timeout = const Duration(seconds: 15), UpdateInfo? matching}) async {
     if (!isActive) return null;
+    if (platform == 'ohos') return const [];
     final result = await raceFirst<List<ReleaseInfo>>(_sources('assets/releases.json'), (url, cancel) async {
       if (!isActive) return null;
       _requests.add(cancel);

@@ -472,6 +472,7 @@ final class RecordChatRecorder {
   final Duration flushInterval;
 
   final _tasks = <String, _TaskChat>{};
+  final _pendingClosures = <Future<void>>{};
 
   /// Entries of the closed files of each task's session (keyed by the
   /// session's start), kept after the task stops for its summary.
@@ -511,7 +512,7 @@ final class RecordChatRecorder {
     for (final task in tasks) {
       seen.add(task.taskId);
       if (!task.recordsChat(fallback: wanted) || !_connected.contains(task.status)) {
-        unawaited(_release(task.taskId));
+        _closeLater(_release(task.taskId));
         continue;
       }
       final state = _tasks.putIfAbsent(task.taskId, () => _TaskChat(task.taskId));
@@ -519,7 +520,7 @@ final class RecordChatRecorder {
       _syncWriter(task, state);
     }
     for (final taskId in _tasks.keys.where((id) => !seen.contains(id)).toList()) {
-      unawaited(_release(taskId));
+      _closeLater(_release(taskId));
     }
   }
 
@@ -565,13 +566,13 @@ final class RecordChatRecorder {
     if (task.status == RecordStatus.preparing) state.preparing = task.recordingFilePrefix;
     if (task.status != RecordStatus.running || directory.isEmpty) {
       // Preparing or reconnecting: the previous attempt's video has ended.
-      unawaited(_closeWriter(state));
+      _closeLater(_closeWriter(state));
       return;
     }
     final prefix = task.recordingFilePrefix;
     final key = '$directory\u0000$prefix';
     if (state.writerKey == key) return;
-    unawaited(_closeWriter(state));
+    _closeLater(_closeWriter(state));
     state.writerKey = key;
     // The video starts as the attempt turns from preparing to running; an
     // attempt already running when chat was switched on is timed from its
@@ -640,10 +641,24 @@ final class RecordChatRecorder {
     await connection?.stop().catchError((Object _) {});
   }
 
+  void _closeLater(Future<void> closing) {
+    _pendingClosures.add(closing);
+    unawaited(
+      closing.whenComplete(() {
+        _pendingClosures.remove(closing);
+      }),
+    );
+  }
+
   /// Closes every file and connection.
   Future<void> dispose() async {
     _disposed = true;
     _flushTimer.cancel();
     await Future.wait(_tasks.keys.toList().map(_release));
+    // sync removes a task before its asynchronous XML flush has completed.
+    // Include those releases and previous attempts in the shutdown barrier.
+    while (_pendingClosures.isNotEmpty) {
+      await Future.wait(_pendingClosures.toList());
+    }
   }
 }

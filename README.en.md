@@ -1,3 +1,13 @@
+# PureLive HarmonyOS rewrite port
+
+This development branch adapts [wzgrx/PureLive](https://github.com/wzgrx/PureLive) 5.5.0 at `fe4fdebf95fb6f73bcf9f07be058ca7ea49600a5` for HarmonyOS phones. The original 3.x project is [liuchuancong/pure_live](https://github.com/liuchuancong/pure_live). Upstream licenses and attribution are retained.
+
+The separate bundle `com.mystyle.purelive.next.ohos` preserves the previous HarmonyOS app and its data. See [build and verification instructions](tools/harmonyos/README.md) and [development status](docs/X-多端客户端/X06-HarmonyOS/X06.1-重构版鸿蒙移植/record.md). Phone acceptance is scheduled for Monday; a source check or unsigned HAP does not establish device acceptance.
+
+The following is the upstream README. Its Android/desktop packages and feature claims are not HarmonyOS verification results.
+
+---
+
 <p align="center">
   <img src="docs/Y-发布和运营/Y03-发布说明和README/readme/banner-en.jpg" alt="Pure Live" width="100%">
 </p>

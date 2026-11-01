@@ -783,6 +783,7 @@
     "gpu_decode": "GPU Kod Çözmeyi Tercih Et",
     "grant_install_permission": "İndirmeden önce lütfen yükleme izni verin",
     "hardware_decoder": "Donanım Kod Çözücü (--hwdec)",
+    "harmonyos_managed_directory": "Files are stored in the app folder and can be shared. Choosing an external folder is not supported yet.",
     "hd_recommend": "SD/HD için önerilir",
     "header_typography_group": "Başlık ve Bileşen Hiyerarşisi",
     "height": "Yükseklik",

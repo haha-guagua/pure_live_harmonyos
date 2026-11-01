@@ -1,4 +1,6 @@
 // The settings page over an in-memory store, shared by the settings tests.
+import 'dart:io';
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,9 +10,11 @@ import 'package:go_router/go_router.dart';
 import 'package:live_store/live_store.dart';
 import 'package:live_ui/live_ui.dart';
 import 'package:pure_live/app/services.dart';
+import 'package:pure_live/features/backup/backup_page.dart';
 import 'package:pure_live/features/settings/settings_editors.dart';
 import 'package:pure_live/features/settings/settings_model.dart';
 import 'package:pure_live/features/settings/settings_page.dart';
+import 'package:pure_live/platform/display_mode.dart';
 import 'package:pure_live/routes/app_navigator.dart';
 import 'package:pure_live/routes/route_args.dart';
 import 'package:pure_live/routes/route_path.dart';
@@ -45,6 +49,15 @@ Future<SettingsHarness> pumpSettings(
   Future<void> Function(SettingsStore settings)? seed,
   List<Override> overrides = const [],
 }) async {
+  tester.view.display.refreshRate = 60;
+  addTearDown(tester.view.display.resetRefreshRate);
+  final previousDisplay = DisplayMode.info.value;
+  DisplayMode.info.value ??= const DisplayModeInfo(
+    currentRefreshRate: 60,
+    maxRefreshRate: 60,
+    supportedRefreshRates: [60],
+  );
+  addTearDown(() => DisplayMode.info.value = previousDisplay);
   tester.view
     ..physicalSize = Size(width, height)
     ..devicePixelRatio = 1;
@@ -53,9 +66,13 @@ Future<SettingsHarness> pumpSettings(
   // "remove animations"), so frames settle.
   tester.platformDispatcher.accessibilityFeaturesTestValue = const FakeAccessibilityFeatures(disableAnimations: true);
   addTearDown(tester.platformDispatcher.clearAccessibilityFeaturesTestValue);
+  final root = (await tester.runAsync(() => Directory.systemTemp.createTemp('purelive-settings-')))!;
+  addTearDown(() => tester.runAsync(() => root.delete(recursive: true)));
   final services = (await tester.runAsync(() async {
-    final services = await testServices();
+    final services = await testServices(dataRoot: root);
     await seed?.call(services.store.settings);
+    await services.recording?.loadSettings();
+    await services.recording?.storage.recordDirectory();
     return services;
   }))!;
   addTearDown(() => tester.runAsync(services.close));
@@ -97,7 +114,12 @@ Future<SettingsHarness> pumpSettings(
   addTearDown(() => AppNavigator.router = null);
   await tester.pumpWidget(
     ProviderScope(
-      overrides: [appServicesProvider.overrideWithValue(services), ...overrides],
+      overrides: [
+        appServicesProvider.overrideWithValue(services),
+        if (!overrides.any((override) => identical(override.origin, backupDefaultFolderProvider)))
+          backupDefaultFolderProvider.overrideWithValue(() async => root),
+        ...overrides,
+      ],
       child: LiveUiScope(
         config: LiveUiConfig(strings: strings.ui),
         child: MaterialApp.router(
@@ -120,13 +142,24 @@ Future<void> settleSettings(WidgetTester tester) async {
 }
 
 /// Lets a local directory read finish between fake-clock frames.
-Future<void> settleSettingsFiles(WidgetTester tester) async {
+Future<void> settleSettingsFiles(WidgetTester tester, {String reason = ''}) async {
   for (var attempt = 0; attempt < 10; attempt++) {
     await tester.runAsync(() => Future<void>.delayed(const Duration(seconds: 1)));
     await tester.pump(const Duration(seconds: 1));
     if (find.byType(CircularProgressIndicator).evaluate().isEmpty && !tester.binding.hasScheduledFrame) return;
   }
-  fail('the generated-data settings page did not finish its local reads');
+  for (final element in find.byType(CircularProgressIndicator).evaluate()) {
+    final ancestors = <String>[];
+    element.visitAncestorElements((ancestor) {
+      ancestors.add('${ancestor.widget.runtimeType}:${ancestor.widget.key}');
+      return ancestors.length < 20;
+    });
+    debugPrint('Loading ancestors: $ancestors');
+  }
+  fail(
+    'the generated-data settings page did not finish its local reads: $reason; '
+    '${find.byType(CircularProgressIndicator).evaluate().map((element) => element.toStringShort()).toList()}',
+  );
 }
 
 /// The row of a catalogue entry.

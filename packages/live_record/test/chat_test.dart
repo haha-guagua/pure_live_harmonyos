@@ -51,6 +51,29 @@ void main() {
     expect(writer.count, 2);
   });
 
+  test('dispose waits for the final XML flush after sync has removed the task', () async {
+    void Function(LiveMessage message)? deliver;
+    final chat = RecordChatRecorder(
+      enabled: () => true,
+      connect: (task, {required onMessage, required onEnded}) async {
+        deliver = onMessage;
+        return RecordChatConnection(stop: () async {});
+      },
+    );
+    addTearDown(chat.dispose);
+    final task = _task(folder.path);
+    chat.sync([task]);
+    await _until(() => chat.fileOf(task.taskId) != null && deliver != null);
+    final file = chat.fileOf(task.taskId)!;
+    deliver!(_chat('last before stop'));
+    chat.sync([task..status = RecordStatus.stopped]);
+    await chat.dispose();
+    final saved = file.readAsStringSync();
+    expect(saved, contains('>last before stop</d>'));
+    expect(saved, endsWith('</i>\n'));
+    file.deleteSync();
+  });
+
   test('one file per attempt beside its video; reconnect gaps and other statuses write nothing', () async {
     final connected = <String>[];
     void Function(LiveMessage message)? deliver;

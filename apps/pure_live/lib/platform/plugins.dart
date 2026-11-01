@@ -17,6 +17,7 @@ import 'package:pure_live/features/record_settings/record_settings_dialogs.dart'
 import 'package:pure_live/features/recorder/recorder_page.dart';
 import 'package:pure_live/features/settings/data_tools.dart';
 import 'package:pure_live/i18n/i18n.dart';
+import 'package:pure_live/platform/harmony_files.dart';
 import 'package:pure_live/platform/overlay_window.dart';
 import 'package:pure_live/routes/app_navigator.dart';
 import 'package:pure_live/shared/in_app_web.dart';
@@ -60,11 +61,13 @@ List<Override> pluginOverrides() => [
   backupPickerProvider.overrideWithValue(pickBackupPath),
   recordDirectoryPickerProvider.overrideWithValue(pickRecordDirectory),
   downloadDirectoryPickerProvider.overrideWithValue(pickDownloadDirectory),
-  if (Platform.isAndroid || Platform.isIOS) logSharerProvider.overrideWithValue(shareFile),
+  if (Platform.isAndroid || Platform.isIOS || Platform.operatingSystem == 'ohos')
+    logSharerProvider.overrideWithValue(shareFile),
 ];
 
 /// The system share sheet with [file] (share_plus).
 Future<bool> shareFile(File file) async {
+  if (Platform.operatingSystem == 'ohos') return await HarmonyFiles.shareFile(file);
   await SharePlus.instance.share(ShareParams(files: [XFile(file.path)], sharePositionOrigin: sheetOrigin(null)));
   return true;
 }
@@ -83,7 +86,13 @@ Size _windowSize() {
 }
 
 /// The update download folder (3.x `FileUtils.pickDirectory`).
-Future<String?> pickDownloadDirectory() => FilePicker.getDirectoryPath(dialogTitle: i18n('download_directory'));
+Future<String?> pickDownloadDirectory() async {
+  if (Platform.operatingSystem == 'ohos') {
+    AppNavigator.toast(i18n('harmonyos_managed_directory'));
+    return null;
+  }
+  return await FilePicker.getDirectoryPath(dialogTitle: i18n('download_directory'));
+}
 
 /// Opens [path] in the system file manager (DocumentsUI) with a document
 /// folder intent (3.x `FileUtils.openDirectory`); false when the folder has
@@ -115,6 +124,7 @@ Future<bool> openAndroidFolder(String path) async {
 /// The system share sheet with [text] (share_plus); true once it was shown.
 /// An iPad's sheet points at [origin] ([sheetOrigin]).
 Future<bool> shareText(String text, {Rect? origin}) async {
+  if (Platform.operatingSystem == 'ohos') return await HarmonyFiles.shareText(text);
   await SharePlus.instance.share(ShareParams(text: text, sharePositionOrigin: sheetOrigin(origin)));
   return true;
 }
@@ -123,6 +133,7 @@ Future<bool> shareText(String text, {Rect? origin}) async {
 /// on Android (a content URI through its file provider; `url_launcher`
 /// cannot hand out the app's private files), the shell elsewhere.
 Future<bool> openLocalFile(String path) async {
+  if (Platform.operatingSystem == 'ohos') return await HarmonyFiles.openFile(path);
   if (Platform.isAndroid) {
     final result = await OpenFilex.open(path);
     return result.type == ResultType.done;
@@ -139,6 +150,7 @@ bool get _filterByExtension => !Platform.isAndroid;
 /// kind's extensions). On Android the picker copies the chosen document into
 /// the app's cache, so no storage permission is needed.
 Future<File?> pickIptvFile(BuildContext context, IptvImportKind kind) async {
+  if (Platform.operatingSystem == 'ohos') return await HarmonyFiles.pickFile();
   final file = await FilePicker.pickFile(
     dialogTitle: importPickerTitle(kind),
     type: _filterByExtension ? FileType.custom : FileType.any,
@@ -153,6 +165,11 @@ Future<File?> pickIptvFile(BuildContext context, IptvImportKind kind) async {
 /// picked file is copied into the app's cache; a picked folder is checked
 /// for writing by the page. No "all files" access is asked for.
 Future<String?> pickBackupPath(BuildContext context, {required String initial, required bool pickFile}) async {
+  if (Platform.operatingSystem == 'ohos') {
+    if (pickFile) return (await HarmonyFiles.pickFile())?.path;
+    AppNavigator.toast(i18n('harmonyos_managed_directory'));
+    return null;
+  }
   final start = Directory(initial).existsSync() ? initial : null;
   if (!pickFile) {
     return await FilePicker.getDirectoryPath(dialogTitle: i18n('backup_directory'), initialDirectory: start);
@@ -167,4 +184,10 @@ Future<String?> pickBackupPath(BuildContext context, {required String initial, r
 }
 
 /// The record folder (3.x `FilePicker.platform.getDirectoryPath`).
-Future<String?> pickRecordDirectory() => FilePicker.getDirectoryPath(dialogTitle: i18n('record_save_path'));
+Future<String?> pickRecordDirectory() async {
+  if (Platform.operatingSystem == 'ohos') {
+    AppNavigator.toast(i18n('harmonyos_managed_directory'));
+    return null;
+  }
+  return await FilePicker.getDirectoryPath(dialogTitle: i18n('record_save_path'));
+}

@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -156,7 +158,7 @@ void main() {
         await tester.pump();
         expect(h.opened, isEmpty);
         expect(find.byType(pageType), findsOneWidget);
-        await settleSettingsFiles(tester);
+        await settleSettingsFiles(tester, reason: section.name);
         await tester.binding.handlePopRoute();
         await settleSettingsFiles(tester);
         expect(find.byKey(const ValueKey('settings-overview')), findsOneWidget);
@@ -325,7 +327,13 @@ void main() {
         expect(find.descendant(of: settingsRow('language'), matching: find.text('简体中文')), findsOneWidget);
         expect(find.descendant(of: settingsRow('cross_spacing'), matching: find.text('6 px')), findsOneWidget);
         expect(find.descendant(of: settingsRow('text_scale'), matching: find.text('100%')), findsOneWidget);
-        expect(find.descendant(of: settingsRow('app_font'), matching: find.text('系统默认')), findsOneWidget);
+        expect(
+          find.descendant(
+            of: settingsRow('app_font'),
+            matching: find.text(Platform.isWindows ? 'Microsoft YaHei' : '系统默认'),
+          ),
+          findsOneWidget,
+        );
         expect(find.text('Default'), findsNothing);
         // The pager is on computers only (3.x showed it wider than 680).
         expect(settingsRow('page_settings'), findsNothing);

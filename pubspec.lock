@@ -202,12 +202,11 @@ packages:
     source: hosted
     version: "1.1.3"
   cnativeapi:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: cnativeapi
-      sha256: "251fb93cd7ec205445fa512ee5ddeb0b82b3273d071cfc0784ddffbbdebbf5d3"
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/cnativeapi_ohos"
+      relative: true
+    source: path
     version: "0.5.2"
   code_assets:
     dependency: "direct overridden"
@@ -233,6 +232,13 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "7.3.2"
+  connectivity_plus_harmonyos:
+    dependency: transitive
+    description:
+      path: "third_party/connectivity_plus_harmonyos"
+      relative: true
+    source: path
+    version: "0.0.1"
   connectivity_plus_platform_interface:
     dependency: transitive
     description:
@@ -274,12 +280,11 @@ packages:
     source: hosted
     version: "3.0.8"
   cupertino_ui:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: cupertino_ui
-      sha256: a47c4e7c66fd7444a063a602597fceb238f705c3f6b1322bc0053d0a2638ee6e
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/cupertino_ui_ohos"
+      relative: true
+    source: path
     version: "1.1.4"
   dart_webrtc:
     dependency: transitive
@@ -346,12 +351,11 @@ packages:
     source: hosted
     version: "0.0.16-pre"
   ffmpeg_kit_extended_flutter:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: ffmpeg_kit_extended_flutter
-      sha256: "9623aa07d20953669b7cf1cfe4bcbd85c13e25b1b7ce4f7eb67b188bf86fdf73"
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/ffmpeg_kit_ohos"
+      relative: true
+    source: path
     version: "1.0.0"
   file:
     dependency: transitive
@@ -779,12 +783,11 @@ packages:
     source: hosted
     version: "0.13.0"
   material_ui:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: material_ui
-      sha256: e4031746f96c8316864d9b92bce375f1320a36ed56e166307e1e1bda9d90b4ab
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/material_ui_ohos"
+      relative: true
+    source: path
     version: "1.8.0"
   media_kit:
     dependency: "direct overridden"
@@ -825,12 +828,11 @@ packages:
     source: hosted
     version: "7.4.2"
   native_toolchain_c:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: native_toolchain_c
-      sha256: "90eaad8059ebc2004a63810a4696ea9acdb02473e47ed3b6b3bafb100ac77e31"
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/native_toolchain_c_ohos"
+      relative: true
+    source: path
     version: "0.19.5"
   nativeapi:
     dependency: transitive
@@ -960,6 +962,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.2.2"
+  path_provider_ohos:
+    dependency: transitive
+    description:
+      name: path_provider_ohos
+      sha256: "6b479a99543743a9e0882f69521345b1ec78ceacb50ba155dffd43d01b1f84d0"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.2.1"
   path_provider_platform_interface:
     dependency: transitive
     description:
@@ -1230,12 +1240,11 @@ packages:
     source: hosted
     version: "2.4.3"
   sqlite3:
-    dependency: transitive
+    dependency: "direct overridden"
     description:
-      name: sqlite3
-      sha256: "5340531ad17f386ae444873f643f281060b6238cc702edeee6b1e90bc4c6874e"
-      url: "https://pub.dev"
-    source: hosted
+      path: "third_party/sqlite3_ohos"
+      relative: true
+    source: path
     version: "3.8.0"
   stack_trace:
     dependency: transitive
@@ -1389,6 +1398,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.2.6"
+  url_launcher_ohos:
+    dependency: transitive
+    description:
+      name: url_launcher_ohos
+      sha256: a6ab56765be876fbcfac6f2a8de4f5bc5dc62b0c66e0fa37e33db263cb5d4ba7
+      url: "https://pub.dev"
+    source: hosted
+    version: "6.3.0"
   url_launcher_platform_interface:
     dependency: transitive
     description:

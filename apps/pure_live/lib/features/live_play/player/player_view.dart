@@ -1069,7 +1069,7 @@ class _RoomPlayerState extends ConsumerState<RoomPlayer> {
     return ColoredBox(
       color: OnVideoColors.ground,
       child: MouseRegion(
-        onHover: (_) => _touch(),
+        onHover: widget.platform.desktop ? (_) => _touch() : null,
         child: Stack(
           fit: StackFit.expand,
           children: [

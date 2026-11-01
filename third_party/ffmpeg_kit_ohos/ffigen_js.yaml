@@ -1,0 +1,59 @@
+name: 'FFmpegKitBindings'
+description: 'Dart bindings for FFmpegKit C Wrapper'
+output: 'lib/src/generated/ffmpeg_kit_bindings_web.dart'
+
+# Native Assets Support
+ffi-native:
+  asset-id: 'package:ffmpeg_kit_extended_flutter/ffmpegkit'
+
+headers:
+  entry-points:
+    - '../libs/libffmpegkit/FFmpegKit/src/ffmpegkit_wrapper.h'
+
+compiler-opts:
+  - '-I../libs/libffmpegkit/FFmpegKit/src'
+  # Keep the installed MinGW clang builtin and runtime headers visible to
+  # libclang when ffigen_js runs on Windows.
+  - '-isystem'
+  - 'C:\msys64\mingw64\lib\clang\22\include'
+  # Keep the Apple Clang builtin headers visible when bindings are regenerated
+  # on the MacBook Air; the missing stdbool.h otherwise aborts Wasm binding
+  # generation before the public wrapper declarations are parsed.
+  - '-isystem'
+  - '/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/21/include'
+  # Set the macro to empty so Clang ignores the __declspec parts
+  - '-DFFMPEG_KIT_C_EXPORT='
+  # Tell Clang NOT to error out on macro redefinitions
+  - '-Wno-macro-redefined'
+  # Basic C compatibility
+  - '-std=c11'
+  - '-D__STDC_CONSTANT_MACROS'
+  - '-target'
+  - 'wasm32-unknown-emscripten'
+
+# Restrict generation to declarations owned by the public FFmpegKit C wrapper.
+# The wrapper header pulls in platform/CRT headers transitively; using `.*`
+# here causes unrelated declarations such as _errno and
+# _invalid_parameter_noinfo to leak into the generated web bindings.
+functions:
+  include:
+    - '^(ffmpeg_kit_|ffprobe_kit_|ffplay_kit_|media_information_|stream_information_|chapter_|session_).*'
+
+enums:
+  include:
+    - '^FFmpegKit.*'
+
+typedefs:
+  include:
+    - '^(FFmpeg|FFprobe|FFplay|MediaInformation|StreamInformation|Chapter|Statistics).*'
+
+globals:
+  exclude:
+    - '^__.*'
+
+silence-enum-warning: true
+
+preamble: |
+  // ignore_for_file: type=lint
+  // ignore_for_file: unused_element, unused_field
+  // ignore_for_file: non_constant_identifier_names, camel_case_types

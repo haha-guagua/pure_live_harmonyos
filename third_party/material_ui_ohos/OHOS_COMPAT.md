@@ -1,0 +1,3 @@
+# HarmonyOS UI platform cases
+
+Source: official Flutter material_ui 1.8.0, unchanged version and BSD license retained. 67 switch patterns explicitly include TargetPlatform.ohos alongside the touch UI behavior used on Android. The default OHOS page transition uses Zoom; Android retains its predictive-back transition. The runtime remains OHOS: no native Android plugin or Platform.isAndroid override is enabled. This is required after Flutter split Material/Cupertino into separately published libraries whose platform switches do not yet handle OHOS. Application widget regressions run on the OHOS target variant.

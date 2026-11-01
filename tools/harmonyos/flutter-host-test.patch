@@ -1,0 +1,84 @@
+--- a/packages/flutter_tools/lib/src/artifacts.dart
++++ b/packages/flutter_tools/lib/src/artifacts.dart
+@@ -707,6 +707,13 @@
+         // android_arm in profile mode because it is available on all supported host platforms.
+         return _getAndroidArtifactPath(artifact, TargetPlatform.android_arm, BuildMode.profile);
+       case Artifact.frontendServerSnapshotForEngineDartSdk:
++        if (platform == TargetPlatform.tester) {
++          return _fileSystem.path.join(
++            _cache.getArtifactDirectory('engine').path,
++            _enginePlatformDirectoryName(_currentHostPlatform(_platform, _operatingSystemUtils)),
++            artifact.getFileName(_platform),
++          );
++        }
+         // OHOS: 鸿蒙引擎 OBS 发布的 dart-sdk（3.12.2+ohos 补丁）配套提供
+         // frontend_server，其 kernel 格式（130）与引擎 patched SDK 一致；
+         // stock dart-sdk（3.13.3）的 frontend_server 白名单与内核版本均不匹配。
+@@ -747,11 +754,25 @@
+           artifact.getFileName(_platform),
+         );
+       case Artifact.flutterPatchedSdkPath:
++        if (platform == TargetPlatform.tester) {
++          // Host tests use the stock kernel; OHOS builds retain their kernel.
++          return _fileSystem.path.join(
++            _cache.getArtifactDirectory('engine').path,
++            'host_common',
++            'flutter_patched_sdk',
++          );
++        }
+         return _getFlutterPatchedSdkPath(mode);
+       case Artifact.engineDartSdkPath:
+         return _dartSdkPath(_cache);
+       case Artifact.engineDartBinary:
+       case Artifact.engineDartAotRuntime:
++        if (platform == TargetPlatform.tester && artifact == Artifact.engineDartAotRuntime) {
++          return _fileSystem.path.join(
++            _cache.getCacheDir('host-runtime').path,
++            artifact.getFileName(_platform),
++          );
++        }
+         // OHOS: 与 frontendServerSnapshotForEngineDartSdk 同理，dartaotruntime/dart
+         // 必须与 OBS 鸿蒙引擎的 kernel 版本（3.12.2）配套。
+         if (platform.isOhos) {
+--- a/packages/flutter_tools/lib/src/compile.dart
++++ b/packages/flutter_tools/lib/src/compile.dart
+@@ -945,7 +945,7 @@
+   }) async {
+     final TargetPlatform? platform = (targetModel == TargetModel.dartdevc)
+         ? TargetPlatform.web_javascript
+-        : null;
++        : (testCompilation ? TargetPlatform.tester : null);
+     late final List<String> commandToStartFrontendServer;
+     if (frontendServerStarterPath != null && frontendServerStarterPath!.isNotEmpty) {
+       commandToStartFrontendServer = <String>[
+--- a/packages/flutter/lib/src/widgets/_window_io.dart
++++ b/packages/flutter/lib/src/widgets/_window_io.dart
+@@ -38,7 +38,7 @@
+     return WindowingOwnerLinux();
+   } else if (Platform.isMacOS) {
+     return WindowingOwnerMacOS();
+-  } else if (Platform.isOhos) {
++  } else if (Platform.operatingSystem == 'ohos') {
+     // Multi-window targets HarmonyOS PC (`2in1`) only; elsewhere behave like
+     // any unsupported platform (owner null, factories throw).
+     return ohosWindowingSupported ? WindowingOwnerOHOS() : null;
+--- a/packages/flutter/lib/src/widgets/_window_ohos.dart
++++ b/packages/flutter/lib/src/widgets/_window_ohos.dart
+@@ -64,7 +64,7 @@
+ }
+ 
+ /// [WindowingOwner] implementation for OHOS; throws [UnsupportedError] if
+-/// [Platform.isOhos] is false.
++/// [Platform.operatingSystem] does not name OHOS.
+ ///
+ /// {@macro flutter.widgets.windowing.experimental}
+ class WindowingOwnerOHOS extends WindowingOwner {
+@@ -77,7 +77,7 @@
+       throw UnsupportedError(_kWindowingDisabledErrorMessage);
+     }
+ 
+-    if (!Platform.isOhos) {
++    if (Platform.operatingSystem != 'ohos') {
+       throw UnsupportedError('Only available on the OHOS platform');
+     }
+ 

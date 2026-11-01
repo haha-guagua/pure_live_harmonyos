@@ -51,14 +51,14 @@ final class NoNetworkHttp implements LiveHttp {
 }
 
 /// Services over an in-memory store, without background work.
-Future<AppServices> testServices({LaunchArgs launch = const LaunchArgs()}) async {
+Future<AppServices> testServices({LaunchArgs launch = const LaunchArgs(), Directory? dataRoot}) async {
   final cipher = FakeCipher();
   final store = await LiveStore.memory(cipher: cipher);
   return AppBootstrap.wire(
     store: store,
     cipher: cipher,
     launch: launch,
-    dataRoot: Directory.systemTemp,
+    dataRoot: dataRoot ?? Directory.systemTemp,
     http: NoNetworkHttp(),
     background: false,
   );

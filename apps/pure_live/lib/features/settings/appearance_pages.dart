@@ -772,7 +772,7 @@ class RoomCardSettingsPage extends ConsumerStatefulWidget {
 
 class _RoomCardSettingsPageState extends ConsumerState<RoomCardSettingsPage> {
   late RoomCardViewport _viewport = switch (defaultTargetPlatform) {
-    TargetPlatform.android || TargetPlatform.iOS => RoomCardViewport.mobile,
+    TargetPlatform.android || TargetPlatform.iOS || TargetPlatform.ohos => RoomCardViewport.mobile,
     _ => RoomCardViewport.desktop,
   };
 

@@ -16,6 +16,7 @@ import 'package:live_ui/src/widgets/focus_ring.dart';
 const PageTransitionsTheme appPageTransitionsTheme = PageTransitionsTheme(
   builders: <TargetPlatform, PageTransitionsBuilder>{
     TargetPlatform.android: SpringPageTransitionsBuilder(),
+    TargetPlatform.ohos: SpringPageTransitionsBuilder(),
     TargetPlatform.windows: SpringPageTransitionsBuilder(),
     TargetPlatform.linux: SpringPageTransitionsBuilder(),
   },

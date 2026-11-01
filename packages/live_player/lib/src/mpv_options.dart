@@ -5,6 +5,9 @@ enum MpvPlatform {
   /// Android.
   android,
 
+  /// HarmonyOS with native OHCodec and OHAudio outputs.
+  ohos,
+
   /// iOS.
   ios,
 
@@ -78,7 +81,7 @@ final class MpvEngineConfig {
     'no', 'auto', 'auto-safe', 'yes', 'auto-copy', 'd3d11va', 'd3d11va-copy', 'videotoolbox', //
     'videotoolbox-copy', 'vaapi', 'vaapi-copy', 'nvdec', 'nvdec-copy', 'drm', 'drm-copy', 'vulkan', 'vulkan-copy',
     'dxva2', 'dxva2-copy', 'vdpau', 'vdpau-copy', 'mediacodec', 'mediacodec-copy', 'cuda', 'cuda-copy', 'crystalhd',
-    'rkmpp',
+    'rkmpp', 'ohcodec',
   };
 
   /// Hardware decoders the settings may store on iOS.
@@ -96,6 +99,10 @@ final class MpvEngineConfig {
 
   /// The `hwdec` of a hardware open (3.x's `_preferredHardwareDecoder`).
   String get preferredHardwareDecoder {
+    if (platform == MpvPlatform.ohos) {
+      if (!customOutput) return hardwareDecoding ? 'ohcodec' : 'no';
+      return const {'ohcodec', 'auto', 'auto-safe', 'no'}.contains(hardwareDecoder) ? hardwareDecoder : 'ohcodec';
+    }
     if (platform == MpvPlatform.macos) return 'no';
     if (androidCompatibility && platform == MpvPlatform.android) return 'mediacodec';
     if (customOutput) {
@@ -110,6 +117,11 @@ final class MpvEngineConfig {
 
   /// The `vo` of the video controller, or null for media_kit's default.
   String? get videoOutput {
+    if (platform == MpvPlatform.ohos) {
+      return customOutput && const {'gpu', 'gpu-next', 'null'}.contains(videoOutputDriver)
+          ? videoOutputDriver
+          : 'gpu-next';
+    }
     if (androidCompatibility && platform == MpvPlatform.android) return 'mediacodec_embed';
     if (customOutput) {
       if (platform == MpvPlatform.ios) return 'libmpv';
@@ -125,10 +137,12 @@ final class MpvEngineConfig {
     final platformDefault = switch (platform) {
       MpvPlatform.android => 'audiotrack,aaudio,opensles,',
       MpvPlatform.linux => 'alsa',
+      MpvPlatform.ohos => 'ohaudio',
       _ => null,
     };
     if (!customOutput) return platformDefault;
     final driver = audioOutputDriver.trim();
+    if (platform == MpvPlatform.ohos) return driver == 'null' ? 'null' : 'ohaudio';
     if (platform == MpvPlatform.android && (driver == 'auto' || !androidAudioOutputDrivers.contains(driver))) {
       return platformDefault;
     }

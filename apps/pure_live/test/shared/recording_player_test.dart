@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:path/path.dart' as p;
 import 'package:pure_live/app/services.dart';
 import 'package:pure_live/i18n/i18n.dart';
 import 'package:pure_live/shared/record/recording_player_page.dart';
@@ -20,7 +21,7 @@ void main() {
     }
     File('${dir.path}/bilibili/other/2026-10-15/07-00-00/x.mp4').createSync(recursive: true);
     final files = recordingsBeside('$room/2026-10-15/07-49-05/a.mp4');
-    expect(files.map((path) => path.substring(room.length + 1)), [
+    expect(files.map((path) => p.posix.joinAll(p.split(p.relative(path, from: room)))), [
       '2026-10-14/22-00-00/b.mp4',
       '2026-10-15/07-49-05/a.mp4',
       '2026-10-15/10-00-00/c.flv',
@@ -34,7 +35,7 @@ void main() {
       File('${dir.path}/$name').writeAsStringSync('x');
     }
     final files = recordingsBeside('${dir.path}/b_2.mp4');
-    expect(files.map((path) => path.split('/').last), ['a_1.flv', 'b_2.mp4', 'c_3.ts']);
+    expect(files.map(p.basename), ['a_1.flv', 'b_2.mp4', 'c_3.ts']);
     // A folder that cannot be read: the file alone.
     expect(recordingsBeside('/no/such/dir/x.mp4'), ['/no/such/dir/x.mp4']);
   });
@@ -47,7 +48,10 @@ void main() {
     // K90 2026-10-15: a bare path with a Chinese folder reached mpv
     // percent-encoded; a file URL is decoded by mpv.
     expect(recordingUrl('/sdcard/Records/老实憨厚的笑笑/a b.mp4'), startsWith('file:///sdcard/Records/'));
-    expect(Uri.parse(recordingUrl('/sdcard/Records/老实憨厚的笑笑/a b.mp4')).toFilePath(), '/sdcard/Records/老实憨厚的笑笑/a b.mp4');
+    expect(
+      Uri.parse(recordingUrl('/sdcard/Records/老实憨厚的笑笑/a b.mp4')).toFilePath(windows: false),
+      '/sdcard/Records/老实憨厚的笑笑/a b.mp4',
+    );
     expect(recordingPositionKey('/a/b.mp4'), recordingPositionKey('/a/b.mp4'));
     expect(recordingPositionKey('/a/b.mp4'), isNot(recordingPositionKey('/a/c.mp4')));
   });

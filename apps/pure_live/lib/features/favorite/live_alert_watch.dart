@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -150,7 +151,7 @@ final class LiveAlertWatchFile {
   final Future<File> file;
 
   /// The state; null when there is none or it cannot be read.
-  Future<LiveAlertWatch?> read() async {
+  Future<LiveAlertWatch?> read() => _inTurn(() async {
     try {
       final file = await this.file;
       if (!file.existsSync()) return null;
@@ -159,7 +160,7 @@ final class LiveAlertWatchFile {
       log('Live alert state unreadable', name: 'LiveAlerts', error: error);
       return null;
     }
-  }
+  });
 
   /// Writes [watch] whole (a temporary file renamed over the old one, so a
   /// reader never sees half of it). Each write has a temporary file of its
@@ -195,10 +196,25 @@ final class LiveAlertWatchFile {
   });
 
   static int _serial = 0;
+  static final Map<String, Future<void>> _pending = {};
   Future<void> _last = Future.value();
 
-  Future<void> _inTurn(Future<void> Function() work) {
-    final done = _last.then((_) => work());
+  Future<T> _inTurn<T>(Future<T> Function() work) {
+    final done = _last.then((_) async {
+      final path = (await file).absolute.path;
+      // Separate stores in one process must also close their read/write
+      // handles before replacing the file (required by Windows).
+      final previous = _pending[path] ?? Future<void>.value();
+      final operation = previous.then((_) => work());
+      final tail = operation.then<void>((_) {}, onError: (Object _) {});
+      _pending[path] = tail;
+      unawaited(
+        tail.whenComplete(() {
+          if (identical(_pending[path], tail)) unawaited(_pending.remove(path));
+        }),
+      );
+      return await operation;
+    });
     _last = done.then((_) {}, onError: (Object _) {});
     return done;
   }

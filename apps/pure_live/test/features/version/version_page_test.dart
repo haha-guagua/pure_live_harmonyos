@@ -13,6 +13,7 @@ import 'package:go_router/go_router.dart';
 import 'package:live_net/live_net.dart';
 import 'package:live_store/live_store.dart';
 import 'package:live_ui/live_ui.dart';
+import 'package:path/path.dart' as p;
 import 'package:pure_live/app/downloads.dart';
 import 'package:pure_live/app/services.dart';
 import 'package:pure_live/features/about/about_page.dart';
@@ -304,7 +305,7 @@ void main() {
       await tester.pump();
     }
     expect(install, findsOneWidget);
-    final file = File('${temp.path}/PureLive-9.0.0-${pubspecBuild + 1}-android-arm64-v8a-release.apk');
+    final file = File(p.join(temp.path, 'PureLive-9.0.0-${pubspecBuild + 1}-android-arm64-v8a-release.apk'));
     expect(file.lengthSync(), 3000);
     expect(http.urls.single, startsWith('https://cdn.gh-proxy.org/'));
     await tester.tap(find.byKey(const ValueKey('update-download-install')));

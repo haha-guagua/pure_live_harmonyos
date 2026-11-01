@@ -783,6 +783,7 @@
     "gpu_decode": "Preferir decodificação por GPU",
     "grant_install_permission": "Conceda a permissão de instalação antes de baixar",
     "hardware_decoder": "Decodificador de hardware (--hwdec)",
+    "harmonyos_managed_directory": "Files are stored in the app folder and can be shared. Choosing an external folder is not supported yet.",
     "hd_recommend": "Recomendado para SD/HD",
     "header_typography_group": "Hierarquia de cabeçalhos e componentes",
     "height": "Altura",

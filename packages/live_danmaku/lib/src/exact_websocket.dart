@@ -526,7 +526,10 @@ final class ExactWebSocket implements SocketChannel {
         _closeReason = '';
       }
     }
-    if (!_closeSent) _sendFrame(8, payload);
+    if (!_closeSent) {
+      _closeSent = true;
+      _sendFrame(8, payload);
+    }
     _finish();
   }
 
@@ -593,9 +596,35 @@ final class ExactWebSocket implements SocketChannel {
     _closed = true;
     _handshakeTimer?.cancel();
     _closeTimer?.cancel();
+    final socket = _socket;
+    if (_closeSent && socket != null) {
+      unawaited(_flushClose(socket));
+    } else {
+      _disposeTransport();
+    }
+    unawaited(_incoming.close());
+  }
+
+  Future<void> _flushClose(Socket socket) async {
+    Future<void> drain() async {
+      await socket.flush();
+      await socket.close();
+    }
+
+    try {
+      // Destroying immediately can discard the close frame on Windows. Keep
+      // the bounded shutdown even if the peer stops reading its socket.
+      await drain().timeout(const Duration(seconds: 1));
+    } on Object {
+      // A broken transport is still released below.
+    } finally {
+      _disposeTransport();
+    }
+  }
+
+  void _disposeTransport() {
     unawaited(_subscription?.cancel());
     _socket?.destroy();
-    unawaited(_incoming.close());
     if (!_done.isCompleted) _done.complete();
   }
 

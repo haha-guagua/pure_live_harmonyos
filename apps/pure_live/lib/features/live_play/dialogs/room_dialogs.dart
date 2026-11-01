@@ -295,6 +295,7 @@ class _RoomVolumePanelState extends State<RoomVolumePanel> {
   double? _level;
   bool _dragging = false;
   Timer? _follow;
+  StreamSubscription<double>? _volumeEvents;
 
   LiveRoomController get _room => widget.controller;
 
@@ -303,6 +304,9 @@ class _RoomVolumePanelState extends State<RoomVolumePanel> {
     super.initState();
     if (_system) {
       unawaited(_read());
+      _volumeEvents = DeviceControls.volumeChanges.listen((value) {
+        if (mounted && !_dragging) setState(() => _level = value);
+      });
       // The volume keys and the drags change it while the panel is open.
       _follow = Timer.periodic(const Duration(seconds: 1), (_) => unawaited(_read()));
     }
@@ -311,6 +315,7 @@ class _RoomVolumePanelState extends State<RoomVolumePanel> {
   @override
   void dispose() {
     _follow?.cancel();
+    unawaited(_volumeEvents?.cancel());
     super.dispose();
   }
 
@@ -326,8 +331,8 @@ class _RoomVolumePanelState extends State<RoomVolumePanel> {
   Future<void> _set(double value, {bool keep = false}) async {
     final level = value.clamp(0.0, 1.0);
     if (_system) {
-      setState(() => _level = level);
-      await DeviceControls.setVolume(level);
+      final actual = await DeviceControls.setVolume(level);
+      if (mounted && actual != null) setState(() => _level = actual);
     } else {
       await _room.setVolume(level, save: keep);
     }
@@ -359,7 +364,8 @@ class _RoomVolumePanelState extends State<RoomVolumePanel> {
       builder: (context, _) {
         final theme = Theme.of(context);
         final value = _value;
-        final percent = '${(value * 100).round()}%';
+        final ready = !_system || _level != null;
+        final percent = ready ? '${(value * 100).round()}%' : '—';
         return ListView(
           padding: const EdgeInsets.only(bottom: 16),
           children: [
@@ -370,7 +376,7 @@ class _RoomVolumePanelState extends State<RoomVolumePanel> {
                   IconButton(
                     key: const ValueKey('room-volume-mute'),
                     tooltip: i18n(value <= 0 ? 'live_play_unmute' : 'live_play_mute'),
-                    onPressed: _toggleMute,
+                    onPressed: ready ? _toggleMute : null,
                     icon: Icon(volumeIcon(value)),
                   ),
                   Expanded(
@@ -381,7 +387,7 @@ class _RoomVolumePanelState extends State<RoomVolumePanel> {
                       label: percent,
                       semanticFormatterCallback: (_) => percent,
                       onChangeStart: (_) => _dragging = true,
-                      onChanged: (level) => unawaited(_set(level)),
+                      onChanged: ready ? (level) => unawaited(_set(level)) : null,
                       onChangeEnd: (level) {
                         _dragging = false;
                         // The player's volume is kept for the room once the

@@ -783,6 +783,7 @@
     "gpu_decode": "เน้นการถอดรหัสด้วย GPU",
     "grant_install_permission": "โปรดอนุญาตสิทธิ์ติดตั้งก่อนดาวน์โหลด",
     "hardware_decoder": "ตัวถอดรหัสฮาร์ดแวร์ (--hwdec)",
+    "harmonyos_managed_directory": "Files are stored in the app folder and can be shared. Choosing an external folder is not supported yet.",
     "hd_recommend": "แนะนำสำหรับ SD/HD",
     "header_typography_group": "ลำดับชั้นของหัวข้อและส่วนประกอบ",
     "height": "ความสูง",

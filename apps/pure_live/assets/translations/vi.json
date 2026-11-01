@@ -783,6 +783,7 @@
     "gpu_decode": "Ưu tiên giải mã GPU",
     "grant_install_permission": "Vui lòng cấp quyền cài đặt trước khi tải xuống",
     "hardware_decoder": "Bộ giải mã phần cứng (--hwdec)",
+    "harmonyos_managed_directory": "Files are stored in the app folder and can be shared. Choosing an external folder is not supported yet.",
     "hd_recommend": "Khuyên dùng cho SD/HD",
     "header_typography_group": "Phân cấp tiêu đề & thành phần",
     "height": "Chiều cao",

@@ -25,6 +25,18 @@ workspace:
 
 # Overrides apply to the whole workspace and may only be declared here.
 dependency_overrides:
+  material_ui:
+    path: third_party/material_ui_ohos
+  cupertino_ui:
+    path: third_party/cupertino_ui_ohos
+  native_toolchain_c:
+    path: third_party/native_toolchain_c_ohos
+  cnativeapi:
+    path: third_party/cnativeapi_ohos
+  sqlite3:
+    path: third_party/sqlite3_ohos
+  ffmpeg_kit_extended_flutter:
+    path: third_party/ffmpeg_kit_ohos
   # flutter_webrtc 1.6.3 with track-scoped Android projection-stop events.
   # Source, license and minimal patch are in PURELIVE_PATCH.md.
   flutter_webrtc:

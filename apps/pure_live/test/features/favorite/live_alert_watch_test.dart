@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:live_core/live_core.dart';
 import 'package:live_store/live_store.dart';
+import 'package:path/path.dart' as p;
 import 'package:pure_live/features/favorite/favorite_controller.dart';
 import 'package:pure_live/features/favorite/follow_refresher.dart';
 import 'package:pure_live/features/favorite/live_alert_watch.dart';
@@ -99,7 +100,7 @@ void main() {
       final other = LiveAlertWatchFile(file.file);
       await Future.wait([file.write(watch('丙')), other.write(watch('丁')), file.write(watch('戊'))]);
       expect(['丙', '丁', '戊'], contains((await file.read())!.names['douyu:1']));
-      expect(folder.listSync().map((entry) => entry.path.split('/').last), [LiveAlertWatchFile.name]);
+      expect(folder.listSync().map((entry) => p.basename(entry.path)), [LiveAlertWatchFile.name]);
     },
   );
 
@@ -194,7 +195,10 @@ void main() {
           nameOf: (room) => room.nick,
         ),
       )..start();
-      addTearDown(controller.dispose);
+      addTearDown(() async {
+        controller.dispose();
+        await controller.backgroundSettled();
+      });
       await controller.firstCheck;
       await _until(() async => scheduled.isNotEmpty);
       expect(scheduled, [false], reason: '"开播提醒" is off by default');
@@ -234,7 +238,10 @@ void main() {
           nameOf: (room) => room.nick,
         ),
       )..start();
-      addTearDown(controller.dispose);
+      addTearDown(() async {
+        controller.dispose();
+        await controller.backgroundSettled();
+      });
       await controller.firstCheck;
       await _until(() async => (await file.read())?.states.containsKey('douyu:1') ?? false);
       // The start writes the file twice; the second must not land after the

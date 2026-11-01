@@ -66,6 +66,11 @@ class DocsTest(unittest.TestCase):
     def test_generated_files_pass(self):
         self.assertEqual(self.check(), (0, ''))
 
+    def test_generated_markdown_links_use_url_separators(self):
+        status = (self.root / 'docs' / 'STATUS.md').read_text(encoding='utf-8')
+        self.assertIn('](A-界面设计/README.md)', status)
+        self.assertNotRegex(status, r'\]\([^)]*\\')
+
     def test_stale_generated_file(self):
         status = self.root / 'docs' / 'STATUS.md'
         status.write_text(status.read_text(encoding='utf-8') + '\n手改\n', encoding='utf-8')

@@ -154,19 +154,29 @@ Future<void> _expectRingPixels(WidgetTester tester, String id) async {
       return points.map((point) {
         final x = ((point.dx - origin.dx) * 2).round();
         final y = ((point.dy - origin.dy) * 2).round();
-        final offset = (y * image.width + x) * 4;
-        return Color.fromARGB(
-          bytes.getUint8(offset + 3),
-          bytes.getUint8(offset),
-          bytes.getUint8(offset + 1),
-          bytes.getUint8(offset + 2),
-        );
+        // The centre may fall between physical pixels on another renderer.
+        // Require a solid ring pixel on every side, within one physical pixel
+        // of the expected centre; an absent or clipped side still fails.
+        return [
+          for (var dy = -1; dy <= 1; dy++)
+            for (var dx = -1; dx <= 1; dx++)
+              Color.fromARGB(
+                bytes.getUint8(((y + dy) * image.width + x + dx) * 4 + 3),
+                bytes.getUint8(((y + dy) * image.width + x + dx) * 4),
+                bytes.getUint8(((y + dy) * image.width + x + dx) * 4 + 1),
+                bytes.getUint8(((y + dy) * image.width + x + dx) * 4 + 2),
+              ),
+        ];
       }).toList();
     } finally {
       image.dispose();
     }
   }))!;
-  expect(colors, everyElement(TvTheme.of(context).focusRing), reason: 'all four sides are painted, not just laid out');
+  expect(
+    colors,
+    everyElement(contains(TvTheme.of(context).focusRing)),
+    reason: 'all four sides have a solid ring pixel',
+  );
 }
 
 String _selected(WidgetTester tester) {

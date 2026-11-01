@@ -14,6 +14,7 @@ import 'package:go_router/go_router.dart';
 import 'package:live_net/live_net.dart';
 import 'package:live_store/live_store.dart';
 import 'package:live_ui/live_ui.dart';
+import 'package:path/path.dart' as p;
 import 'package:pure_live/app/downloads.dart';
 import 'package:pure_live/app/services.dart';
 import 'package:pure_live/features/version/app_version.dart';
@@ -941,7 +942,7 @@ void main() {
       await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
       expect(find.byKey(const ValueKey('update-download-dialog')), findsNothing);
-      expect(File('${folder.path}/${_apk('9.0.0').name}').existsSync(), isTrue);
+      expect(File(p.join(folder.path, _apk('9.0.0').name)).existsSync(), isTrue);
     });
 
     testWidgets('A18.2 c10: on a Mac a finished download has one button, "在访达中显示"', (tester) async {
@@ -981,7 +982,7 @@ void main() {
         expect(_x(tester, '关闭'), lessThan(_x(tester, '在访达中显示')));
         await tester.tap(find.text('在访达中显示'));
         await tester.pumpAndSettle();
-        expect(revealed, [('reveal', '${folder.path}/${_apk('9.0.0').name}')]);
+        expect(revealed, [('reveal', p.join(folder.path, _apk('9.0.0').name))]);
         expect(h.opened, isEmpty, reason: 'nothing is opened, the DMG is shown');
         await tester.tap(find.text('关闭'));
         await tester.pumpAndSettle();

@@ -12,6 +12,7 @@ import 'package:live_store/live_store.dart';
 import 'package:path/path.dart' as p;
 import 'package:pure_live/app/recording.dart';
 import 'package:pure_live/app/recording_notice.dart';
+import 'package:pure_live/platform/harmony_recording.dart';
 
 /// Whether this build carries the FFmpeg bundle (`ffmpeg_kit_extended_config`
 /// in the workspace pubspec: Android, Windows, Linux, iOS and macOS).
@@ -19,7 +20,7 @@ bool get platformHasFfmpeg => hasBundledFfmpeg(Platform.operatingSystem);
 
 /// Whether [operatingSystem] has a native bundle in the build configuration.
 bool hasBundledFfmpeg(String operatingSystem) =>
-    const {'android', 'windows', 'linux', 'ios', 'macos'}.contains(operatingSystem);
+    const {'android', 'windows', 'linux', 'ios', 'macos', 'ohos'}.contains(operatingSystem);
 
 /// FFmpeg through FFmpegKit (3.x `FFmpegService` and `VideoProcessorService`
 /// used `ffmpeg_kit_extended_flutter` 0.6.2 the same way): a session from the
@@ -127,7 +128,7 @@ final class RecordCaBundle {
 
   /// Writes the bundle when it is missing or differs (Android and Linux).
   Future<void> prepare(AssetBundle bundle) async {
-    if (!Platform.isAndroid && !Platform.isLinux) return;
+    if (!Platform.isAndroid && !Platform.isLinux && Platform.operatingSystem != 'ohos') return;
     try {
       final data = await bundle.load(asset);
       final bytes = data.buffer.asUint8List(data.offsetInBytes, data.lengthInBytes);
@@ -446,7 +447,7 @@ AppRecording platformAppRecording({
     sites: sites,
     proxy: proxy,
     dataRoot: dataRoot,
-    ffmpeg: platformHasFfmpeg ? FfmpegKitRunner() : null,
+    ffmpeg: Platform.operatingSystem == 'ohos' ? HarmonyFfmpegRunner() : (platformHasFfmpeg ? FfmpegKitRunner() : null),
     danmaku: danmaku,
     keepAlive: keepAlive,
     storageAccess: (storage, {required interactive}) =>

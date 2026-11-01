@@ -68,10 +68,14 @@ final class ProjectionReceiver {
     try {
       final bytes = <int>[];
       if (request.method == 'POST') {
+        var oversized = false;
         await for (final chunk in request.timeout(const Duration(seconds: 10))) {
-          bytes.addAll(chunk);
-          if (bytes.length > 16384) throw const FormatException('oversized');
+          if (bytes.length + chunk.length > 16384) oversized = true;
+          if (!oversized) bytes.addAll(chunk);
         }
+        // Consume the bounded-time request before replying. Cancelling its
+        // subscription closes the Windows socket before the error is sent.
+        if (oversized) throw const FormatException('oversized');
       }
       if (_disposed ||
           request.headers.value('origin') != null ||

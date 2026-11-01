@@ -783,6 +783,7 @@
     "gpu_decode": "Utamakan Dekode GPU",
     "grant_install_permission": "Berikan izin instal sebelum mengunduh",
     "hardware_decoder": "Dekoder Perangkat Keras (--hwdec)",
+    "harmonyos_managed_directory": "Files are stored in the app folder and can be shared. Choosing an external folder is not supported yet.",
     "hd_recommend": "Disarankan untuk SD/HD",
     "header_typography_group": "Hierarki Judul & Komponen",
     "height": "Tinggi",

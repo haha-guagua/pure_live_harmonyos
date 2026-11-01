@@ -1,0 +1,65 @@
+name: 'FFmpegKitBindings'
+description: 'Dart bindings for FFmpegKit C Wrapper'
+output: 'lib/src/generated/ffmpeg_kit_bindings_native.dart'
+
+# Native Assets Support
+ffi-native:
+  asset-id: 'package:ffmpeg_kit_extended_flutter/ffmpegkit'
+
+headers:
+  entry-points:
+    - '../libs/libffmpegkit/FFmpegKit/src/ffmpegkit_wrapper.h'
+
+compiler-opts:
+  - '-I../libs/libffmpegkit/FFmpegKit/src'
+  # Keep the installed MinGW clang builtin and runtime headers visible to
+  # libclang when ffigen runs on Windows.
+  - '-isystem'
+  - 'C:\msys64\mingw64\lib\clang\22\include'
+  # Set the macro to empty so Clang ignores the __declspec parts
+  - '-DFFMPEG_KIT_C_EXPORT=' 
+  # Tell Clang NOT to error out on macro redefinitions
+  - '-Wno-macro-redefined'
+  # Basic C compatibility
+  - '-std=c11'
+  - '-D__STDC_CONSTANT_MACROS'
+
+functions:
+  include:
+    - '.*'
+  exclude:
+    - '^__.*'
+    - '^_.*'
+
+enums:
+  include:
+    - '.*'
+
+typedefs:
+  include:
+    # Keep generated bindings independent of the host C library's system
+    # typedef spellings; only these public wrapper-owned types are emitted.
+    - '^(FFmpeg|FFprobe|FFplay|MediaInformation|StreamInformation|Chapter|Statistics).*'
+  exclude:
+    - '^__.*'
+    - '^_.*'
+    - '^(errno_t|mbstate_t|rsize_t|time_t|wctype_t|wint_t)$'
+
+structs:
+  exclude:
+    - '^_.*'
+
+unions:
+  exclude:
+    - '^__.*'
+
+globals:
+  exclude:
+    - '^__.*'
+
+silence-enum-warning: true
+
+preamble: |
+  // ignore_for_file: type=lint
+  // ignore_for_file: unused_element, unused_field
+  // ignore_for_file: non_constant_identifier_names, camel_case_types

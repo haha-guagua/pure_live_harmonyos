@@ -114,7 +114,7 @@ void main() {
         await store.setBlur(4);
         expect(store.files.blurs, 1, reason: 'the same blur is not computed again');
         await store.setBlur(0);
-        expect(store.current.value, picked.path, reason: 'no blur: the picture itself');
+        expect(File(store.current.value).absolute.uri, picked.absolute.uri, reason: 'no blur: the picture itself');
 
         await store.setGradient(tvGradients.first.name);
         expect(store.current.kind, TvWallpaperKind.gradient);

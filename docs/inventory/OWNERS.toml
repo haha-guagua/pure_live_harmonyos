@@ -14,6 +14,8 @@
 # - 加新文件时：落在已有目录规则下就不用改；新目录或者归属不同时加一条。
 
 path = [
+  { glob = "apps/pure_live/lib/platform/harmony_*.dart", sub = "X06" },
+  { glob = "tools/harmonyos/", sub = "X06" },
   # ---- apps/pure_live/lib/app：应用入口和服务 ----
   { glob = "apps/pure_live/lib/app/desktop/mac_menu_bar.dart", sub = "A18" },
   { glob = "apps/pure_live/lib/app/commands.dart", sub = "A18" },
@@ -312,6 +314,8 @@ site = [
 
 # 原生通道：Dart 和 Kotlin 里写的 `pure_live/...` 名字。
 channel = [
+  { name = "pure_live/ohos_files", sub = "X06" },
+  { name = "pure_live/recording", sub = "X06" },
   { name = "pure_live/screen_capture", sub = "N02" },
   { name = "pure_live/app", sub = "O06", note = "回到后台、电视判断、遥控器输入、启动画面主题，待定" },
   { name = "pure_live/background_guide", sub = "O01" },

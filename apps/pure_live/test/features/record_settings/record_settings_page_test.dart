@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:live_record/live_record.dart';
 import 'package:live_store/live_store.dart';
 import 'package:live_ui/live_ui.dart';
+import 'package:path/path.dart' as p;
 import 'package:pure_live/app/recording.dart';
 import 'package:pure_live/app/services.dart';
 import 'package:pure_live/features/record_settings/record_settings_dialogs.dart';
@@ -427,7 +428,7 @@ void main() {
     await _tap(tester, find.text('Pure Live 录制文件目录'));
     expect(find.byKey(const ValueKey('record-directory-input')), findsNothing, reason: 'no dialog: the picker (3.x)');
     expect(harness.settings.savePath, picked);
-    expect(find.text('$picked/PureLiveRecords'), findsOneWidget);
+    expect(find.text(p.join(picked, 'PureLiveRecords')), findsOneWidget);
     expect(File('$picked/PureLiveRecords/${RecordStorage.ownershipMarkerName}').existsSync(), isTrue);
 
     final file = File('${harness.folder.path}/not_a_folder');

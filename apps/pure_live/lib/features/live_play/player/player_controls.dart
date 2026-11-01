@@ -74,7 +74,7 @@ final class RoomPlatform {
 
   /// Phones and tablets: the orientation, gestures and the portrait
   /// fullscreen.
-  bool get mobile => android || platform == TargetPlatform.iOS;
+  bool get mobile => android || platform == TargetPlatform.iOS || platform == TargetPlatform.ohos;
 
   /// Windows, Linux and macOS: the volume slider and the in-window
   /// fullscreen.

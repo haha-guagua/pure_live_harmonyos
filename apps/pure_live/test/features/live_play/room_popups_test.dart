@@ -673,7 +673,7 @@ void main() {
   });
 
   group('U.2n c2, c3 (B-3, B-14): the room volume', () {
-    testWidgets('Android: the system media volume, the same one the drag on the picture changes', (tester) async {
+    testWidgets('phone: the system media volume, the same one the drag on the picture changes', (tester) async {
       var system = 0.8;
       final calls = <String>[];
       DeviceControls.debugAvailable = true;
@@ -689,7 +689,7 @@ void main() {
         return null;
       });
       addTearDown(() => tester.binding.defaultBinaryMessenger.setMockMethodCallHandler(channel, null));
-      final room = await _pump(tester);
+      final room = await _pump(tester, platform: defaultTargetPlatform);
 
       await _menu(tester, 'volume');
       await _settle(tester);
@@ -743,7 +743,7 @@ void main() {
       expect(calls, isNot(contains('setBrightness')));
       await _closePanel(tester);
       await _close(tester, room);
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.ohos}));
 
     testWidgets('elsewhere: the player volume, kept for the room; muting comes back to it', (tester) async {
       final room = await _pump(tester, width: 1280, height: 800, platform: TargetPlatform.windows);

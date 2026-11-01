@@ -783,6 +783,7 @@
     "gpu_decode": "GPU デコードを優先",
     "grant_install_permission": "ダウンロード前にインストールの権限を許可してください",
     "hardware_decoder": "ハードウェアデコーダー（--hwdec）",
+    "harmonyos_managed_directory": "Files are stored in the app folder and can be shared. Choosing an external folder is not supported yet.",
     "hd_recommend": "SD／HD に推奨",
     "header_typography_group": "見出しとコンポーネントの階層",
     "height": "高さ",

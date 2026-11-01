@@ -204,12 +204,16 @@ class _HomePageState extends ConsumerState<HomePage> with WidgetsBindingObserver
         watchSetting(ref, Settings.homeNavigationAutoHide) && defaultTargetPlatform == TargetPlatform.android;
     final mobileLabels = watchSetting(ref, Settings.mobileNavigationLabels);
     final labels =
-        !(defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS) ||
+        !(defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.ohos) ||
         mobileLabels;
     // V02.6: a tablet may keep the bottom bar (phones and tablets only).
     final bottomOnWide =
         watchSetting(ref, Settings.homeBottomBarOnWide) &&
-        (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS);
+        (defaultTargetPlatform == TargetPlatform.android ||
+            defaultTargetPlatform == TargetPlatform.iOS ||
+            defaultTargetPlatform == TargetPlatform.ohos);
     return PopScope<Object?>(
       canPop: false,
       onPopInvokedWithResult: _onBack,

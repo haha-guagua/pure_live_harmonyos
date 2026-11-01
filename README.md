@@ -1,3 +1,16 @@
+# PureLive HarmonyOS 重构版移植
+
+此开发分支基于 [wzgrx/PureLive](https://github.com/wzgrx/PureLive) 5.5.0，冻结上游提交 `fe4fdebf95fb6f73bcf9f07be058ca7ea49600a5`，继续移植到 Mate 90 Pro / HarmonyOS 7。原始3.x项目为 [liuchuancong/pure_live](https://github.com/liuchuancong/pure_live)。保留上游许可证与作者归属。
+
+- 独立包名 `com.mystyle.purelive.next.ohos`，与旧鸿蒙版并存，不覆盖旧关注或录制数据。
+- 开发与验证状态见 [X06.1记录](docs/X-多端客户端/X06-HarmonyOS/X06.1-重构版鸿蒙移植/record.md)，Windows构建和门禁入口见 [鸿蒙开发说明](tools/harmonyos/README.md)。
+- 回归重点：原生解码/资产、全屏尺寸与点击控制栏、未开播关注、录制/合并/回放、窗口亮度、真实系统媒体音量与实体音量键。播放器房间增益与系统音量分开。
+- 本轮先做开发和离线验证，真机调试按用户安排在周一执行。源码与构建通过不代表上述功能已在新手机包上验收。未签名HAP需用匹配新包名的设备profile签名后安装。
+
+以下为上游项目说明，其Android/桌面功能与安装包不是本分支的鸿蒙验收结论。
+
+---
+
 <p align="center">
   <img src="docs/Y-发布和运营/Y03-发布说明和README/readme/banner.jpg" alt="纯粹直播 Pure Live" width="100%">
 </p>

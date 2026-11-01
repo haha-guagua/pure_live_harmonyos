@@ -32,6 +32,14 @@ bool _mirror(LiveRequest request) => request.url.host == 'cdn.gh-proxy.org';
 Map<String, Object?> _version(String version, [int build = 6000]) => {'version': version, 'build_number': build};
 
 void main() {
+  test('HarmonyOS preview never offers upstream APK releases as app updates', () async {
+    final http = _Http((_) async => _version('99.0.0'));
+    final feed = UpdateFeed(http, githubOrigin: true, platform: 'ohos');
+    expect(await feed.latest(), isNull);
+    expect(await feed.releases(), isEmpty);
+    expect(http.requests, isEmpty);
+  });
+
   test('Y02.2: a fast stale version does not cancel the slower newer source', () async {
     final slower = Completer<Object?>();
     final http = _Http((request) async {

@@ -93,7 +93,10 @@ enum _Overlay {
   picker,
 }
 
-bool get _mobile => defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+bool get _mobile =>
+    defaultTargetPlatform == TargetPlatform.android ||
+    defaultTargetPlatform == TargetPlatform.iOS ||
+    defaultTargetPlatform == TargetPlatform.ohos;
 
 /// The right column of wide screens (U.2f's panel width).
 const double _columnWidth = roomSidePanelWidth;

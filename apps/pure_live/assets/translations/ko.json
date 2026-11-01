@@ -783,6 +783,7 @@
     "gpu_decode": "GPU 디코딩 우선",
     "grant_install_permission": "다운로드 전에 설치 권한을 허용하세요",
     "hardware_decoder": "하드웨어 디코더(--hwdec)",
+    "harmonyos_managed_directory": "Files are stored in the app folder and can be shared. Choosing an external folder is not supported yet.",
     "hd_recommend": "SD/HD에 권장",
     "header_typography_group": "머리글 및 구성요소 계층",
     "height": "높이",

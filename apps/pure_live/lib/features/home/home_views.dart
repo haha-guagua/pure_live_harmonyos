@@ -189,7 +189,10 @@ class HomeTabletView extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final multiView = watchSetting(ref, Settings.enableMultiView);
     final desktopLabels = watchSetting(ref, Settings.desktopNavigationLabels);
-    final mobile = defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS;
+    final mobile =
+        defaultTargetPlatform == TargetPlatform.android ||
+        defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.ohos;
     final showLabels = mobile || desktopLabels;
     final scheme = Theme.of(context).colorScheme;
     final top = Column(

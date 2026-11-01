@@ -21,6 +21,7 @@ import 'package:pure_live/app/desktop/desktop_window.dart';
 import 'package:pure_live/app/services.dart';
 import 'package:pure_live/features/live_play/buttons/room_menu_button.dart';
 import 'package:pure_live/features/live_play/live_play_page.dart';
+import 'package:pure_live/features/live_play/logic/device_battery.dart';
 import 'package:pure_live/features/live_play/logic/room_layout.dart';
 import 'package:pure_live/features/live_play/logic/room_orientation.dart';
 import 'package:pure_live/features/live_play/player/bar_parts.dart';
@@ -57,6 +58,7 @@ Future<_Room> _pump(
 }) async {
   // Reset by [_close]: the test must end with it unset.
   debugDefaultTargetPlatformOverride = platform;
+  addTearDown(() => debugDefaultTargetPlatformOverride = null);
   tester.view
     ..physicalSize = Size(width, height)
     ..devicePixelRatio = 1;
@@ -88,6 +90,7 @@ Future<_Room> _pump(
     ProviderScope(
       overrides: [
         appServicesProvider.overrideWithValue(services),
+        deviceBatteryReaderProvider.overrideWithValue(() async => null),
         sitesProvider.overrideWithValue(SiteRegistry({SiteIds.bilibili: () => site})),
         danmakuProvider.overrideWithValue(DanmakuRegistry({SiteIds.bilibili: FakeDanmaku.new})),
         playbackSessionFactoryProvider.overrideWithValue(({config}) => fakeSession(engine)),
@@ -142,6 +145,11 @@ Future<void> _tap(WidgetTester tester, String key) async {
 
 /// Shows the controls again (they hide after 4 s of quiet).
 Future<void> _wake(WidgetTester tester) async {
+  if (tester.widget<RoomPlayer>(find.byType(RoomPlayer)).platform.mobile) {
+    await tester.tapAt(tester.getCenter(find.byType(RoomPlayer)));
+    await tester.pump(const Duration(seconds: 1));
+    return;
+  }
   final gesture = await tester.createGesture(kind: PointerDeviceKind.mouse);
   await gesture.addPointer(location: tester.getCenter(find.byType(RoomPlayer)));
   await gesture.moveBy(const Offset(4, 4));
@@ -191,6 +199,39 @@ const _bottomKeys = [
 ];
 
 void main() {
+  testWidgets('OHOS fullscreen ignores synthetic mouse hover and tap toggles controls', (tester) async {
+    final room = await _pump(tester, platform: TargetPlatform.ohos, width: 932, height: 430);
+    await tester.tap(find.byKey(const ValueKey('live-play-fullscreen')));
+    await tester.pump(const Duration(seconds: 1));
+    await tester.pump(const Duration(seconds: 5));
+    final picture = find.byType(RoomPlayer);
+    final point = tester.getCenter(picture);
+    final mouse = await tester.createGesture(kind: PointerDeviceKind.mouse);
+    await mouse.addPointer(location: point - const Offset(20, 0));
+    await mouse.moveTo(point);
+    await tester.pump();
+    double opacity() => tester
+        .widget<AnimatedOpacity>(
+          find.ancestor(of: find.byKey(const ValueKey('live-play-fullscreen')), matching: find.byType(AnimatedOpacity)),
+        )
+        .opacity;
+    // Visibility is checked through the actual bars after animation.
+    expect(opacity(), 0, reason: 'Synthetic hover must not open mobile controls');
+    await tester.tapAt(point);
+    await tester.pump(const Duration(seconds: 1));
+    expect(opacity(), 1, reason: 'First tap must remain visible');
+    await tester.tapAt(point);
+    await tester.pump(const Duration(seconds: 1));
+    expect(opacity(), 0, reason: 'Second tap must hide the same controls');
+    await tester.tapAt(point);
+    await tester.pump(const Duration(seconds: 1));
+    expect(opacity(), 1);
+    await tester.pump(const Duration(seconds: 5));
+    expect(opacity(), 0, reason: 'Inactivity hides the controls');
+    await mouse.removePointer();
+    await _close(tester, room);
+  });
+
   group('U.2c landscape fullscreen', () {
     testWidgets('phone: the bars in order with their icons; the lock at the right; the composer in the middle', (
       tester,
@@ -347,13 +388,15 @@ void main() {
 
     testWidgets('the battery shows its level, nothing without a battery', (tester) async {
       await tester.pumpWidget(
-        const Directionality(
-          textDirection: TextDirection.ltr,
-          child: Row(
-            children: [
-              PlayerBattery(read: _seventySix),
-              PlayerBattery(read: _none),
-            ],
+        const ProviderScope(
+          child: Directionality(
+            textDirection: TextDirection.ltr,
+            child: Row(
+              children: [
+                PlayerBattery(read: _seventySix),
+                PlayerBattery(read: _none),
+              ],
+            ),
           ),
         ),
       );

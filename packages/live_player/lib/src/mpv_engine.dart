@@ -15,6 +15,7 @@ import 'package:media_kit_video/media_kit_video.dart';
 /// The [MpvPlatform] of a Flutter [platform]; null on Fuchsia.
 MpvPlatform? mpvPlatformOf(TargetPlatform platform) => switch (platform) {
   TargetPlatform.android => MpvPlatform.android,
+  TargetPlatform.ohos => MpvPlatform.ohos,
   TargetPlatform.iOS => MpvPlatform.ios,
   TargetPlatform.windows => MpvPlatform.windows,
   TargetPlatform.linux => MpvPlatform.linux,

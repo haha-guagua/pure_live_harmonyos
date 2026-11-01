@@ -83,7 +83,9 @@ void main() {
     final en = read('en');
     final placeholder = RegExp(r'\{[A-Za-z0-9_]+\}');
     List<String> marks(Object? text) => [for (final match in placeholder.allMatches('$text')) match.group(0)!]..sort();
-    final files = {for (final file in Directory('assets/translations').listSync().whereType<File>()) file.path};
+    final files = {
+      for (final file in Directory('assets/translations').listSync().whereType<File>()) file.path.replaceAll(r'\', '/'),
+    };
     expect(files, {for (final language in AppLanguage.values) 'assets/translations/${language.code}.json'});
     for (final language in AppLanguage.values) {
       if (language == AppLanguage.zh || language == AppLanguage.en) continue;

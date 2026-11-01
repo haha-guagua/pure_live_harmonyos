@@ -575,7 +575,7 @@ void main() {
       expect(controller.group, FollowGroup.offline);
       expect(find.text('主播三'), findsOneWidget);
       await tester.runAsync(services.close);
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.ohos}));
 
     testWidgets('the status tabs show their whole label and count on a phone', (tester) async {
       final (services, _, _) = await pumpPage(

@@ -14,6 +14,7 @@ void main() {
     final selections = <ProjectionSelection>[];
     var starts = 0;
     var closes = 0;
+    final closed = Completer<void>();
     ProjectionReceiver? receiver;
     final channel = ProjectionChannel(
       root,
@@ -25,7 +26,10 @@ void main() {
         receiver = await ProjectionReceiver.start(
           file: File(p.join(root.path, 'instances', launch.instanceId, 'projection.json')),
           onOpen: (selection) async => selections.add(selection),
-          onClose: () async => closes++,
+          onClose: () async {
+            closes++;
+            closed.complete();
+          },
         );
       },
     );
@@ -41,6 +45,7 @@ void main() {
       expect(selections.map((selection) => selection.room.roomId), ['1', '2']);
       expect(selections.map((selection) => selection.display), ['display-a', '']);
       await channel.close();
+      await closed.future.timeout(const Duration(seconds: 1));
       expect(closes, 1);
       await channel.select(ProjectionSelection(LiveRoom(platform: 'douyu', roomId: '3')));
       expect(selections.length, 2);

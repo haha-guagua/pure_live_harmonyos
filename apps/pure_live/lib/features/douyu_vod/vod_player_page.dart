@@ -47,7 +47,7 @@ class _DouyuVodPlayerPageState extends ConsumerState<DouyuVodPlayerPage> with Wi
   final _play = FocusNode(debugLabel: 'douyu vod play');
   double? _scrub;
 
-  bool get _mobile => {TargetPlatform.android, TargetPlatform.iOS}.contains(defaultTargetPlatform);
+  bool get _mobile => {TargetPlatform.android, TargetPlatform.iOS, TargetPlatform.ohos}.contains(defaultTargetPlatform);
 
   @override
   void initState() {

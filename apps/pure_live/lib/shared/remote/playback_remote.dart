@@ -296,11 +296,13 @@ final class PlaybackRemote extends ChangeNotifier {
   Future<Map<String, dynamic>> _json(HttpRequest request) async {
     if (request.headers.contentType?.mimeType != 'application/json') throw const FormatException('json required');
     final bytes = <int>[];
+    final limit = request.uri.path.startsWith('/api/screen/') ? 65536 : 16384;
+    var oversized = false;
     await for (final chunk in request.timeout(const Duration(seconds: 10))) {
-      bytes.addAll(chunk);
-      final limit = request.uri.path.startsWith('/api/screen/') ? 65536 : 16384;
-      if (bytes.length > limit) throw const FormatException('oversized');
+      if (bytes.length + chunk.length > limit) oversized = true;
+      if (!oversized) bytes.addAll(chunk);
     }
+    if (oversized) throw const FormatException('oversized');
     final value = jsonDecode(utf8.decode(bytes));
     if (value is! Map<String, dynamic>) throw const FormatException('object required');
     return value;

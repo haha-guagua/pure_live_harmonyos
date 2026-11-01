@@ -1,3 +1,5 @@
+import 'dart:io';
+
 // F02 c1: 设置 → 弹幕 is the live room's danmaku settings (the same
 // component, DanmakuSettingsContent), with "更多" for what only the settings
 // hold, and a route of its own.
@@ -71,7 +73,7 @@ void main() {
     expect(h.settings.get(Settings.youtubeShowAllChat), isTrue);
 
     expect(find.byKey(const ValueKey('danmaku-value-font')), findsOneWidget);
-    expect(find.text('系统默认'), findsOneWidget);
+    expect(find.text(Platform.isWindows ? 'Microsoft YaHei' : '系统默认'), findsOneWidget);
 
     await tapSettings(tester, find.byKey(const ValueKey('danmaku-link-block')));
     expect(h.opened, [RoutePath.kSettingsDanmuShield]);

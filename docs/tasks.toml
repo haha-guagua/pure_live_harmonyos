@@ -691,6 +691,12 @@ scope = "构建、签名、平台差异。"
 code = "`apps/pure_live/macos/`、`.github/workflows/apple.yml`"
 
 [[sub]]
+id = "X06"
+title = "HarmonyOS"
+scope = "鸿蒙手机工程、插件、构建和历史故障回归。"
+code = "`apps/pure_live/ohos/`、`tools/harmonyos/`"
+
+[[sub]]
 id = "Y01"
 title = "版本签名和发布"
 scope = "版本号、构建号、签名、发布页、安装包检查。"
@@ -7690,3 +7696,17 @@ from = "https://github.com/wzgrx/PureLive/issues/138"
 date = "2026-11-01"
 commit = "b81cc8dbfe0cfb41d04dbb62ff1f397231883015"
 note = "本轮范围已交付；同源包、受控证据与摘要完成，原设备和账号边界另行记录。"
+
+[[task]]
+id = "X06.1"
+title = "PureLive重构版鸿蒙手机移植与历史故障回归"
+type = "工程"
+status = "待真机"
+size = "大"
+tier = 1
+stages = ["宿主与工具链", "媒体和手势", "自动化回归与HAP"]
+done = 3
+branch = "next-harmonyos"
+from = "用户2026-11-01授权；上游wzgrx/PureLive"
+date = "2026-11-01"
+note = "离线开发阶段完成；14工作区8754项通过，未签名HAP已构建。独立包名与旧版并存；周一签名及真机验收另列，尚未验证实际声画与录制。"

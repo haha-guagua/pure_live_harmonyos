@@ -253,7 +253,7 @@ void main() {
       );
       expect(files, [p.join(old.path, 'AppData', 'HIVE_DB', 'app_settings.hive')]);
       expect(LegacyLocations.documents(documentsDirectory: '/data/app_flutter'), [
-        '/data/app_flutter/PURE_LIVE/HIVE_DB/app_settings.hive',
+        p.join('/data/app_flutter', 'PURE_LIVE', 'HIVE_DB', 'app_settings.hive'),
       ]);
     });
   });

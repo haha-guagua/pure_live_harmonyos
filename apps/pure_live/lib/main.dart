@@ -85,7 +85,7 @@ Future<void> _launch(List<String> args) async {
 /// the temporary folder (its path is the message).
 Future<String?> _exportLog() async {
   final file = await AppLog.instance.export(await getTemporaryDirectory());
-  if (Platform.isAndroid || Platform.isIOS) {
+  if (Platform.isAndroid || Platform.isIOS || Platform.operatingSystem == 'ohos') {
     await shareFile(file);
     return null;
   }

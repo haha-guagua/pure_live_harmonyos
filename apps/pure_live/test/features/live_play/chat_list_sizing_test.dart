@@ -254,7 +254,11 @@ void main() {
   setUpAll(() async {
     await loadStrings();
     baseline = jsonDecode(
-      File('test/features/live_play/chat_list_sizing_baseline.json').readAsStringSync(),
+      File(
+        Platform.isWindows
+            ? 'test/features/live_play/chat_list_sizing_baseline_windows_cf636b1.json'
+            : 'test/features/live_play/chat_list_sizing_baseline.json',
+      ).readAsStringSync(),
     ) as Map<String, Object?>;
   });
   BaseCacheManager? images;
