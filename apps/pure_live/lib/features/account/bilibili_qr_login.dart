@@ -240,8 +240,10 @@ class _BilibiliQrLoginViewState extends ConsumerState<BilibiliQrLoginView> {
   /// Whether this device offers the web (SMS, password) login: phones with
   /// the in-app browser (3.x showed it on Android and iOS only).
   bool get _webLogin =>
-      InAppWeb.available &&
-      (defaultTargetPlatform == TargetPlatform.android || defaultTargetPlatform == TargetPlatform.iOS);
+      InAppWeb.accountLoginAvailable &&
+      (defaultTargetPlatform == TargetPlatform.android ||
+          defaultTargetPlatform == TargetPlatform.iOS ||
+          defaultTargetPlatform == TargetPlatform.ohos);
 
   @override
   Widget build(BuildContext context) {

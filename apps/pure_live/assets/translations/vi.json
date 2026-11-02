@@ -75,6 +75,7 @@
     "account_web_login_tip": "Đăng nhập {name} trên trang (mã QR, SMS hoặc mật khẩu); đăng nhập xong bạn sẽ quay lại đây và được lưu. Nếu không, chạm “Đã đăng nhập, lưu”",
     "account_web_login_tip_desktop": "Chạm “登录” ở góc trên bên phải trang và đăng nhập {name} bằng mã, mật khẩu hoặc mã QR của ứng dụng (chụm hai ngón để phóng to); đăng nhập xong bạn quay lại và được lưu, nếu không hãy chạm “Đã đăng nhập, lưu”",
     "account_web_login_title": "Đăng nhập {name}",
+    "account_web_prepare_failed": "无法清理上次的网页登录状态，请重试。",
     "active_epg_source": "Lịch phát sóng đang dùng",
     "add": "Thêm",
     "add_tag": "Thêm thẻ",

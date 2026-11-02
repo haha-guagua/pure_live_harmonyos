@@ -18,6 +18,7 @@ import 'package:pure_live/features/recorder/recorder_page.dart';
 import 'package:pure_live/features/settings/data_tools.dart';
 import 'package:pure_live/i18n/i18n.dart';
 import 'package:pure_live/platform/harmony_files.dart';
+import 'package:pure_live/platform/harmony_web.dart';
 import 'package:pure_live/platform/overlay_window.dart';
 import 'package:pure_live/routes/app_navigator.dart';
 import 'package:pure_live/shared/in_app_web.dart';
@@ -48,6 +49,9 @@ void installPluginHooks(AppServices services) {
   AppNavigator.openFile = openLocalFile;
   if (Platform.isAndroid) RecordFolderOpener.android = openAndroidFolder;
   if (Platform.isAndroid || Platform.isIOS) QrScan.camera = MobileQrCamera.new;
+  if (Platform.operatingSystem == 'ohos') {
+    unawaited(HarmonyWeb.available().then((value) => HarmonyWeb.loginAvailable = value));
+  }
   unawaited(InAppWeb.detect().then((value) => InAppWeb.available = value));
   // The app's floating window over other apps (A07.25).
   OverlayWindow.start();

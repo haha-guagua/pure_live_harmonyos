@@ -314,6 +314,7 @@ site = [
 
 # 原生通道：Dart 和 Kotlin 里写的 `pure_live/...` 名字。
 channel = [
+  { name = "pure_live/ohos_web", sub = "X06" },
   { name = "pure_live/ohos_files", sub = "X06" },
   { name = "pure_live/recording", sub = "X06" },
   { name = "pure_live/screen_capture", sub = "N02" },

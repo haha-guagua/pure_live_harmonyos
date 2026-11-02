@@ -2,7 +2,7 @@
 
 # 任务清单
 
-共 20 组、110 个子分类、602 个任务。编号规则见 [PROCESS.md](PROCESS.md) 第 1 节，进度见 [STATUS.md](STATUS.md)，旧编号对照见 [MAPPING.md](MAPPING.md)。
+共 20 组、110 个子分类、603 个任务。编号规则见 [PROCESS.md](PROCESS.md) 第 1 节，进度见 [STATUS.md](STATUS.md)，旧编号对照见 [MAPPING.md](MAPPING.md)。
 
 ## A 界面设计
 
@@ -1135,6 +1135,7 @@ Windows、Linux、电视、苹果平台的客户端专属工作（打包、原�
 | 编号 | 任务 | 类型 | 档位 | 状态 | 阶段 | 资料 |
 |---|---|---|---|---|---|---|
 | X06.1 | PureLive重构版鸿蒙手机移植与历史故障回归 | 工程 | 第一档 | 待真机 | 3/3 | [设计或说明](X-多端客户端/X06-HarmonyOS/X06.1-重构版鸿蒙移植/README.md)、[任务书](X-多端客户端/X06-HarmonyOS/X06.1-重构版鸿蒙移植/brief.md)、[记录](X-多端客户端/X06-HarmonyOS/X06.1-重构版鸿蒙移植/record.md)、[记录 2](X-多端客户端/X06-HarmonyOS/X06.1-重构版鸿蒙移植/record-2.md) |
+| X06.2 | 鸿蒙平台官方网页登录与登录态保存 | 原生 | 第一档 | 待真机 | 3/3 | [设计或说明](X-多端客户端/X06-HarmonyOS/X06.2-平台官方网页登录/README.md)、[任务书](X-多端客户端/X06-HarmonyOS/X06.2-平台官方网页登录/brief.md)、[记录](X-多端客户端/X06-HarmonyOS/X06.2-平台官方网页登录/record.md)、[真机验证](X-多端客户端/X06-HarmonyOS/X06.2-平台官方网页登录/verify.md) |
 
 ## Y 发布和运营
 

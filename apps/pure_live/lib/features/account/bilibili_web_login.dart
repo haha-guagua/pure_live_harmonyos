@@ -1,14 +1,16 @@
 import 'dart:async';
 import 'dart:developer';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:live_ui/live_ui.dart';
 import 'package:pure_live/features/account/account_services.dart';
 import 'package:pure_live/features/account/account_state.dart';
+import 'package:pure_live/features/account/account_widgets.dart';
 import 'package:pure_live/features/account/bilibili_web_cookies.dart';
 import 'package:pure_live/i18n/i18n.dart';
+import 'package:pure_live/platform/harmony_web.dart';
 import 'package:pure_live/routes/app_navigator.dart';
 import 'package:pure_live/routes/route_path.dart';
 import 'package:pure_live/shared/in_app_web.dart';
@@ -53,8 +55,57 @@ class BilibiliWebLoginView extends ConsumerStatefulWidget {
 }
 
 class _BilibiliWebLoginViewState extends ConsumerState<BilibiliWebLoginView> {
-  late final Future<void> _cleared = clearBilibiliWebCookies();
+  late Future<void> _cleared = clearBilibiliWebCookies(requireClear: true);
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    if (defaultTargetPlatform == TargetPlatform.ohos) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => unawaited(_native()));
+    }
+  }
+
+  Future<void> _native() async {
+    if (_saving || !mounted) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final result = await HarmonyWeb.login({
+        'site': 'bilibili',
+        'url': bilibiliPassportLogin.toString(),
+        'domains': bilibiliWebDomains.map((uri) => uri.toString()).toList(),
+        'signals': ['SESSDATA'],
+        'desktop': false,
+        'title': i18n('bilibili_login'),
+        'tip': i18n('account_web_login_option'),
+        'userAgent': bilibiliLoginUserAgent,
+      });
+      if (!mounted) return;
+      if (result.qr) {
+        await AppNavigator.offAndToNamed<void>(RoutePath.kBiliBiliQRLogin);
+      } else if (result.cookie case final cookie?) {
+        final error = await _complete(cookie);
+        if (mounted) {
+          setState(() {
+            _saving = false;
+            _error = error;
+          });
+        }
+      } else {
+        Navigator.of(context).pop();
+      }
+    } on Object {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _error = 'account_web_prepare_failed';
+        });
+      }
+    }
+  }
 
   /// Why the last sign-in did not finish (the red bar, 3.x).
   String? _error;
@@ -68,9 +119,7 @@ class _BilibiliWebLoginViewState extends ConsumerState<BilibiliWebLoginView> {
     final found = <({String name, String value})>[];
     for (final url in bilibiliWebDomains) {
       try {
-        for (final cookie in await CookieManager.instance().getCookies(url: url)) {
-          found.add((name: cookie.name, value: '${cookie.value}'));
-        }
+        found.addAll(await InAppWeb.cookies(url));
       } on Object {
         // Read what the other domains have.
       }
@@ -136,77 +185,85 @@ class _BilibiliWebLoginViewState extends ConsumerState<BilibiliWebLoginView> {
               ),
           ],
         ),
-        body: Stack(
-          children: [
-            FutureBuilder<void>(
-              future: _cleared,
-              builder: (context, snapshot) => snapshot.connectionState != ConnectionState.done
-                  ? const Center(child: CircularProgressIndicator())
-                  : InAppWebPage(
-                      initial: bilibiliPassportLogin,
-                      userAgent: bilibiliLoginUserAgent,
-                      onPage: (uri) => unawaited(_page(uri)),
-                    ),
-            ),
-            if (_saving)
-              Positioned.fill(
-                child: ColoredBox(
-                  key: const ValueKey('bilibili-web-verifying'),
-                  color: scheme.scrim.withValues(alpha: 0.32),
-                  child: Center(
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
-                      decoration: BoxDecoration(
-                        color: scheme.surfaceContainerHigh,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const SizedBox.square(dimension: 28, child: CircularProgressIndicator(strokeWidth: 3)),
-                          const SizedBox(height: 12),
-                          Text(i18n('account_verifying'), style: context.textStyles.t14),
-                        ],
-                      ),
-                    ),
+        body: defaultTargetPlatform == TargetPlatform.ohos
+            ? _error != null
+                  ? AccountWebPreparationFailure(message: _error, onRetry: () => unawaited(_native()))
+                  : const Center(child: CircularProgressIndicator())
+            : Stack(
+                children: [
+                  FutureBuilder<void>(
+                    future: _cleared,
+                    builder: (context, snapshot) => snapshot.hasError
+                        ? AccountWebPreparationFailure(
+                            onRetry: () => setState(() => _cleared = clearBilibiliWebCookies(requireClear: true)),
+                          )
+                        : snapshot.connectionState != ConnectionState.done
+                        ? const Center(child: CircularProgressIndicator())
+                        : InAppWebPage(
+                            initial: bilibiliPassportLogin,
+                            userAgent: bilibiliLoginUserAgent,
+                            onPage: (uri) => unawaited(_page(uri)),
+                          ),
                   ),
-                ),
-              ),
-            if (error != null)
-              Positioned(
-                left: 12,
-                right: 12,
-                bottom: 28,
-                child: Material(
-                  key: const ValueKey('bilibili-web-error'),
-                  color: scheme.errorContainer,
-                  elevation: 2,
-                  borderRadius: BorderRadius.circular(16),
-                  child: Padding(
-                    padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
-                    child: Row(
-                      children: [
-                        Icon(AppIcons.failed, size: 20, color: scheme.onErrorContainer),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            i18n(error),
-                            style: context.textStyles.t13.copyWith(color: scheme.onErrorContainer, height: 1.35),
+                  if (_saving)
+                    Positioned.fill(
+                      child: ColoredBox(
+                        key: const ValueKey('bilibili-web-verifying'),
+                        color: scheme.scrim.withValues(alpha: 0.32),
+                        child: Center(
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+                            decoration: BoxDecoration(
+                              color: scheme.surfaceContainerHigh,
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const SizedBox.square(dimension: 28, child: CircularProgressIndicator(strokeWidth: 3)),
+                                const SizedBox(height: 12),
+                                Text(i18n('account_verifying'), style: context.textStyles.t14),
+                              ],
+                            ),
                           ),
                         ),
-                        IconButton(
-                          tooltip: i18n('close'),
-                          color: scheme.onErrorContainer,
-                          onPressed: () => setState(() => _error = null),
-                          icon: const Icon(AppIcons.close, size: 18),
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
+                  if (error != null)
+                    Positioned(
+                      left: 12,
+                      right: 12,
+                      bottom: 28,
+                      child: Material(
+                        key: const ValueKey('bilibili-web-error'),
+                        color: scheme.errorContainer,
+                        elevation: 2,
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.fromLTRB(16, 14, 8, 14),
+                          child: Row(
+                            children: [
+                              Icon(AppIcons.failed, size: 20, color: scheme.onErrorContainer),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  i18n(error),
+                                  style: context.textStyles.t13.copyWith(color: scheme.onErrorContainer, height: 1.35),
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: i18n('close'),
+                                color: scheme.onErrorContainer,
+                                onPressed: () => setState(() => _error = null),
+                                icon: const Icon(AppIcons.close, size: 18),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
               ),
-          ],
-        ),
       );
     },
   );

@@ -75,6 +75,7 @@
     "account_web_login_tip": "페이지에서 {name}에 로그인하세요(QR 코드, SMS 또는 비밀번호). 로그인하면 여기로 돌아와 저장됩니다. 그렇지 않으면 ‘로그인함, 저장’을 탭하세요",
     "account_web_login_tip_desktop": "페이지 오른쪽 위의 ‘登录’을 탭하고 인증 코드, 비밀번호 또는 공식 앱의 QR 코드로 {name}에 로그인하세요(두 손가락으로 확대 가능). 로그인하면 돌아와 저장됩니다. 그렇지 않으면 ‘로그인함, 저장’을 탭하세요",
     "account_web_login_title": "{name}에 로그인",
+    "account_web_prepare_failed": "无法清理上次的网页登录状态，请重试。",
     "active_epg_source": "사용 중인 편성표",
     "add": "추가",
     "add_tag": "태그 추가",

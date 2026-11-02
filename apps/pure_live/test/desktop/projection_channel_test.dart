@@ -111,13 +111,16 @@ void main() {
     );
     try {
       final initial = channel.select(ProjectionSelection(LiveRoom(platform: 'douyu', roomId: '1')));
-      await entered.future;
+      // Surface startup/request errors instead of waiting forever for a
+      // callback that cannot arrive; a failed gate must retain the real cause.
+      await Future.any([entered.future, initial]).timeout(const Duration(seconds: 30));
       final second = channel.select(ProjectionSelection(LiveRoom(platform: 'douyu', roomId: '2')));
       final last = channel.select(ProjectionSelection(LiveRoom(platform: 'douyu', roomId: '3')));
       first.complete();
       await Future.wait([initial, second, last]);
       expect(rooms, ['1', '3']);
     } finally {
+      if (!first.isCompleted) first.complete();
       await channel.close();
       await receiver?.dispose();
       root.deleteSync(recursive: true);

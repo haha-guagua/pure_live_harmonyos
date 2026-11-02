@@ -36,7 +36,7 @@ class AccountPage extends StatelessWidget {
     if (path == RoutePath.kBiliBiliQRLogin) return const BilibiliQrLoginView();
     // The web (SMS) login needs the in-app browser; without it the route
     // shows the cookie page with the explanation.
-    if (path == RoutePath.kBiliBiliWebLogin && InAppWeb.available) return const BilibiliWebLoginView();
+    if (path == RoutePath.kBiliBiliWebLogin && InAppWeb.accountLoginAvailable) return const BilibiliWebLoginView();
     final platform = path == RoutePath.kSettingsAccount
         ? switch (route.arguments) {
             final String id => accountPlatformOf(id),

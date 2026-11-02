@@ -75,6 +75,7 @@
     "account_web_login_tip": "Masuk ke {name} di halaman (kode QR, SMS, atau kata sandi); setelah masuk Anda kembali ke sini dan tersimpan. Jika tidak, ketuk “Sudah masuk, simpan”",
     "account_web_login_tip_desktop": "Ketuk “登录” di kanan atas halaman lalu masuk ke {name} dengan kode, kata sandi, atau kode QR aplikasinya (cubit untuk memperbesar); setelah masuk Anda kembali dan tersimpan, jika tidak ketuk “Sudah masuk, simpan”",
     "account_web_login_title": "Masuk ke {name}",
+    "account_web_prepare_failed": "无法清理上次的网页登录状态，请重试。",
     "active_epg_source": "Panduan yang dipakai",
     "add": "Tambah",
     "add_tag": "Tambah tag",

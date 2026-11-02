@@ -75,6 +75,7 @@
     "account_web_login_tip": "Melde dich auf der Seite bei {name} an (QR-Code, SMS oder Passwort); danach kommst du hierher zurück und es wird gespeichert. Falls nicht, tippe auf „Angemeldet, speichern“",
     "account_web_login_tip_desktop": "Tippe oben rechts auf der Seite auf „登录“ und melde dich bei {name} mit Code, Passwort oder dem QR-Code der App an (mit zwei Fingern zoomen); danach kommst du zurück und es wird gespeichert, sonst tippe auf „Angemeldet, speichern“",
     "account_web_login_title": "Bei {name} anmelden",
+    "account_web_prepare_failed": "无法清理上次的网页登录状态，请重试。",
     "active_epg_source": "Verwendeter Programmführer",
     "add": "Hinzufügen",
     "add_tag": "Tag hinzufügen",

@@ -1,9 +1,11 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_inappwebview/flutter_inappwebview.dart';
 import 'package:pure_live/i18n/i18n.dart';
+import 'package:pure_live/platform/harmony_web.dart';
 
 /// The in-app browser (flutter_inappwebview, 3.x's WebView): web search and
 /// the Bilibili web login use it where it exists, else the system browser
@@ -13,6 +15,28 @@ abstract final class InAppWeb {
   /// (M12.3: Android always, Windows when the WebView2 runtime is
   /// installed); false in tests and on Linux.
   static bool available = false;
+
+  /// Official login can use a native window even without a Flutter WebView.
+  static bool get accountLoginAvailable =>
+      available || (defaultTargetPlatform == TargetPlatform.ohos && HarmonyWeb.loginAvailable);
+
+  /// Reads native HttpOnly cookies on HarmonyOS and plugin cookies elsewhere.
+  static Future<List<({String name, String value})>> cookies(Uri uri) async {
+    if (defaultTargetPlatform == TargetPlatform.ohos) return await HarmonyWeb.cookies(uri);
+    return [
+      for (final cookie in await CookieManager.instance().getCookies(url: WebUri.uri(uri)))
+        (name: cookie.name, value: '${cookie.value}'),
+    ];
+  }
+
+  /// Clears only this platform's browser session.
+  static Future<void> clearCookies(Uri uri, {String? domain}) async {
+    if (defaultTargetPlatform == TargetPlatform.ohos) {
+      await HarmonyWeb.clearCookies(uri, domain: domain);
+      return;
+    }
+    await CookieManager.instance().deleteCookies(url: WebUri.uri(uri), domain: domain);
+  }
 
   /// Finds out whether this device has a usable WebView.
   static Future<bool> detect() async {

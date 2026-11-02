@@ -720,7 +720,7 @@ void main() {
         tester.getTopLeft(web).dx,
         lessThan(tester.getTopLeft(find.byKey(const ValueKey('bilibili-qr-paste-cookie'))).dx),
       );
-    });
+    }, variant: const TargetPlatformVariant({TargetPlatform.android, TargetPlatform.ohos}));
 
     testWidgets('wide: the QR code is 220; the cookie page one column at most 720', (tester) async {
       await _pump(tester, path: RoutePath.kBiliBiliQRLogin, size: const Size(1280, 800));

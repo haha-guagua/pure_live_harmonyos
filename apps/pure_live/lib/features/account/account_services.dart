@@ -6,6 +6,8 @@ import 'package:live_store/live_store.dart';
 import 'package:pure_live/app/services.dart';
 import 'package:pure_live/features/account/account_state.dart';
 import 'package:pure_live/features/account/bilibili_web_cookies.dart';
+import 'package:pure_live/features/account/platform_web_session.dart';
+import 'package:pure_live/shared/in_app_web.dart';
 
 /// Who a cookie signs in as.
 typedef AccountIdentity = ({String name, int? uid});
@@ -84,15 +86,26 @@ final class _SiteQrApi implements BilibiliQrApi {
 final class AccountActions {
   /// Creates the writer over [store]; [clearBilibiliWeb] removes Bilibili's
   /// cookies from the in-app browser on sign-out.
-  new(this.store, {DateTime Function()? now, Future<void> Function()? clearBilibiliWeb})
-    : _now = now ?? DateTime.now,
-      _clearBilibiliWeb = clearBilibiliWeb ?? clearBilibiliWebCookies;
+  new(
+    this.store, {
+    DateTime Function()? now,
+    Future<void> Function()? clearBilibiliWeb,
+    Future<void> Function(String)? clearPlatformWeb,
+  }) : _now = now ?? DateTime.now,
+       _clearBilibiliWeb = clearBilibiliWeb ?? clearBilibiliWebCookies,
+       _clearPlatformWeb = clearPlatformWeb ?? _clearPlatformSession;
 
   /// The store.
   final LiveStore store;
 
   final DateTime Function() _now;
   final Future<void> Function() _clearBilibiliWeb;
+  final Future<void> Function(String) _clearPlatformWeb;
+
+  static Future<void> _clearPlatformSession(String site) async {
+    final login = platformWebLogins[site];
+    if (InAppWeb.accountLoginAvailable && login != null) await clearWebCookies(login.domains, requireClear: true);
+  }
 
   /// The stored cookie of [site] ('' when none).
   String cookieOf(String site) => store.secrets.cookieFor(site) ?? '';
@@ -206,6 +219,12 @@ final class AccountActions {
       } on Object catch (error) {
         // Signed out all the same (3.x only said so).
         log('Clearing the Bilibili web login failed: $error', name: 'AccountPage');
+      }
+    } else {
+      try {
+        await _clearPlatformWeb(site);
+      } on Object catch (error) {
+        log('Clearing platform web login failed: ${error.runtimeType}', name: 'AccountPage');
       }
     }
     if (site == SiteIds.douyu) await store.settings.set(Settings.douyuCookieSavedAt, 0);

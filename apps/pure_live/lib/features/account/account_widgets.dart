@@ -4,6 +4,33 @@ import 'package:pure_live/features/account/account_state.dart';
 import 'package:pure_live/i18n/i18n.dart';
 import 'package:pure_live/routes/app_navigator.dart';
 
+/// Stops sign-in when the previous browser session could not be cleared.
+class AccountWebPreparationFailure extends StatelessWidget {
+  /// Creates the message and explicit retry action.
+  const new({required this.onRetry, this.message, super.key});
+
+  /// Retries browser session preparation without opening a stale sign-in.
+  final VoidCallback onRetry;
+
+  /// A translated account failure key; null describes preparation failure.
+  final String? message;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(i18n(message ?? 'account_web_prepare_failed'), textAlign: TextAlign.center),
+          const SizedBox(height: 12),
+          FilledButton(onPressed: onRetry, child: Text(i18n('retry'))),
+        ],
+      ),
+    ),
+  );
+}
+
 /// The colour of [tone] (docs/A-界面设计/A12-账号和数据界面/A12.1-账号总览 c2): fine in the primary
 /// colour, a warning in yellow, a failure in red, nothing stored or a check
 /// on its way in the quiet text colour.

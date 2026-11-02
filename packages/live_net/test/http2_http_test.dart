@@ -22,11 +22,16 @@ Future<ProcessResult> _certificate(List<String> arguments, Directory folder) asy
     final converted = await Process.run('wsl.exe', ['--exec', 'wslpath', '-u', folder.path]);
     if (converted.exitCode != 0) return converted;
     final unixFolder = (converted.stdout as String).trim();
-    return await Process.run('wsl.exe', [
+    final made = await Process.run('wsl.exe', [
       '--exec',
       'openssl',
       for (final argument in arguments) argument.replaceAll(folder.path, unixFolder),
     ]);
+    // WSL can be fractionally ahead of Windows at a second boundary. Keep
+    // certificate verification strict and let the new local fixture's
+    // notBefore become valid before the Windows TLS client uses it.
+    if (made.exitCode == 0) await Future<void>.delayed(const Duration(seconds: 2));
+    return made;
   }
 }
 

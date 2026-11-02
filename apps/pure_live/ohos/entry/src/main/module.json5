@@ -1,4 +1,3 @@
-
 {
   "module": {
     "name": "entry",
@@ -31,11 +30,25 @@
             ]
           }
         ]
+      },
+      {
+        "name": "WebLoginAbility",
+        "srcEntry": "./ets/entryability/WebLoginAbility.ets",
+        "exported": false,
+        "launchType": "standard",
+        "label": "$string:EntryAbility_label",
+        "icon": "$media:icon",
+        "startWindowIcon": "$media:icon",
+        "startWindowBackground": "$color:start_window_background"
       }
     ],
     "requestPermissions": [
-      {"name" :  "ohos.permission.INTERNET"},
-      {"name" :  "ohos.permission.GET_NETWORK_INFO"},
+      {
+        "name": "ohos.permission.INTERNET"
+      },
+      {
+        "name": "ohos.permission.GET_NETWORK_INFO"
+      }
     ]
   }
 }

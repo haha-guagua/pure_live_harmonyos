@@ -23,7 +23,8 @@ class CandidateValidationTests(unittest.TestCase):
             "bundle": "com.mystyle.purelive.next.ohos", "minimumApi": 24, "sdk": "fixture-sdk"}))
         (self.root / "apps/pure_live/pubspec.yaml").write_text("version: 5.5.0+5132\n")
 
-    def candidate(self, *, omit=None, architecture=183, glibc=False, bundle=None, minimum_api=24):
+    def candidate(self, *, omit=None, architecture=183, glibc=False, bundle=None, minimum_api=24,
+                  login=True, exported=False):
         hap = self.root / "fixture.hap"
         app = {"bundleName": bundle or "com.mystyle.purelive.next.ohos", "versionName": "5.5.0",
                "versionCode": 5132, "debug": True, "minAPIVersion": minimum_api}
@@ -32,7 +33,8 @@ class CandidateValidationTests(unittest.TestCase):
         struct.pack_into("<H", header, 18, architecture)
         if glibc:
             header.extend(b"libc.so.6\0")
-        entries = {"module.json": json.dumps({"app": app}).encode()}
+        entries = {"module.json": json.dumps({"app": app, 'module': {'abilities':
+            [{'name': 'WebLoginAbility', 'exported': exported}] if login else []}}).encode()}
         for name in ["libflutter.so", "libmpv.so", "libmedia_kit_event_loop.so", "libsqlite3.so", "libffmpegkit_napi.so", "libaki_jsbind.so", "libc++_shared.so"]:
             entries[f"libs/arm64-v8a/{name}"] = header
         prefix = "resources/rawfile/flutter_assets/"
@@ -73,6 +75,14 @@ class CandidateValidationTests(unittest.TestCase):
     def test_rejects_missing_application_kernel(self):
         with self.assertRaisesRegex(ValueError, "kernel_blob"):
             module.inspect(self.candidate(omit="kernel_blob.bin"), self.root)
+
+    def test_rejects_missing_native_login_ability(self):
+        with self.assertRaisesRegex(ValueError, 'login ability'):
+            module.inspect(self.candidate(login=False), self.root)
+
+    def test_rejects_public_native_login_ability(self):
+        with self.assertRaisesRegex(ValueError, 'login ability'):
+            module.inspect(self.candidate(exported=True), self.root)
 
 
 if __name__ == "__main__":

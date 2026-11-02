@@ -75,6 +75,7 @@
     "account_web_login_tip": "Sayfada {name} hesabına giriş yapın (QR kodu, SMS veya şifre); giriş yapınca buraya dönersiniz ve kaydedilir. Dönmezseniz “Giriş yapıldı, kaydet”e dokunun",
     "account_web_login_tip_desktop": "Sayfanın sağ üstündeki “登录” düğmesine dokunun ve {name} hesabına kod, şifre veya uygulamasının QR koduyla giriş yapın (yakınlaştırmak için iki parmakla sıkıştırın); giriş yapınca geri dönersiniz ve kaydedilir, aksi hâlde “Giriş yapıldı, kaydet”e dokunun",
     "account_web_login_title": "{name} hesabına giriş yap",
+    "account_web_prepare_failed": "无法清理上次的网页登录状态，请重试。",
     "active_epg_source": "Kullanılan yayın akışı",
     "add": "Ekle",
     "add_tag": "Etiket ekle",

@@ -16,13 +16,18 @@ def inspect(hap: Path, root: Path) -> dict:
     with zipfile.ZipFile(hap) as archive:
         if archive.testzip() is not None:
             raise ValueError("HAP CRC mismatch")
-        app = json.loads(archive.read("module.json"))["app"]
+        metadata = json.loads(archive.read("module.json"))
+        app = metadata["app"]
         expected = {"bundleName": policy["bundle"], "versionName": version[1], "versionCode": int(version[2]), "debug": True}
         if any(app.get(key) != value for key, value in expected.items()):
             raise ValueError("Application bundle, version or mode mismatch")
         if int(app.get("minAPIVersion", 0)) % 1000 < policy["minimumApi"]:
             raise ValueError("Minimum API is too low for the recorder")
         names = archive.namelist()
+        login = next((item for item in metadata.get('module', {}).get('abilities', [])
+                      if item.get('name') == 'WebLoginAbility'), None)
+        if login is None or login.get('exported') is not False:
+            raise ValueError('Native login ability must exist and remain private')
         required = ["libflutter.so", "libmpv.so", "libmedia_kit_event_loop.so", "libsqlite3.so", "libffmpegkit_napi.so", "libaki_jsbind.so", "libc++_shared.so"]
         for name in required:
             data = archive.read(f"libs/arm64-v8a/{name}")
@@ -45,7 +50,7 @@ def inspect(hap: Path, root: Path) -> dict:
             raise ValueError("Native-assets mapping does not target OHOS arm64")
     with hap.open("rb") as stream:
         digest = hashlib.file_digest(stream, "sha256").hexdigest()
-    return {**expected, "hap": hap.name, "bytes": hap.stat().st_size, "sha256": digest, "sdk": policy["sdk"], "deviceTested": False}
+    return {**expected, "hap": hap.name, "bytes": hap.stat().st_size, "sha256": digest, "sdk": policy["sdk"], "nativeLoginPrivate": True, "deviceTested": False}
 
 
 if __name__ == "__main__":

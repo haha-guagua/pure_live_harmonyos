@@ -75,6 +75,7 @@
     "account_web_login_tip": "Inicia sesión en {name} en la página (código QR, SMS o contraseña); al iniciar sesión vuelves aquí y se guarda. Si no, toca “Sesión iniciada, guardar”",
     "account_web_login_tip_desktop": "Toca “登录” arriba a la derecha de la página e inicia sesión en {name} con un código, contraseña o el código QR de su app (pellizca para ampliar); al iniciar sesión vuelves y se guarda; si no, toca “Sesión iniciada, guardar”",
     "account_web_login_title": "Iniciar sesión en {name}",
+    "account_web_prepare_failed": "无法清理上次的网页登录状态，请重试。",
     "active_epg_source": "Guía en uso",
     "add": "Añadir",
     "add_tag": "Añadir etiqueta",

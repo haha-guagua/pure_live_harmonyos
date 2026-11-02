@@ -75,6 +75,7 @@
     "account_web_login_tip": "Entre em {name} na página (código QR, SMS ou senha); depois de entrar você volta aqui e é salvo. Se não, toque em “Conectado, salvar”",
     "account_web_login_tip_desktop": "Toque em “登录” no canto superior direito da página e entre em {name} com um código, senha ou o código QR do app (pinça para ampliar); depois de entrar você volta e é salvo; se não, toque em “Conectado, salvar”",
     "account_web_login_title": "Entrar em {name}",
+    "account_web_prepare_failed": "无法清理上次的网页登录状态，请重试。",
     "active_epg_source": "Guia em uso",
     "add": "Adicionar",
     "add_tag": "Adicionar tag",

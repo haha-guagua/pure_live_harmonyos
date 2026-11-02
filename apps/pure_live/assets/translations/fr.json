@@ -75,6 +75,7 @@
     "account_web_login_tip": "Connectez-vous à {name} sur la page (code QR, SMS ou mot de passe) ; une fois connecté, vous revenez ici et c’est enregistré. Sinon, touchez « Connecté, enregistrer »",
     "account_web_login_tip_desktop": "Touchez « 登录 » en haut à droite de la page et connectez-vous à {name} avec un code, un mot de passe ou le code QR de son app (pincez pour zoomer) ; une fois connecté vous revenez et c’est enregistré, sinon touchez « Connecté, enregistrer »",
     "account_web_login_title": "Se connecter à {name}",
+    "account_web_prepare_failed": "无法清理上次的网页登录状态，请重试。",
     "active_epg_source": "Guide utilisé",
     "add": "Ajouter",
     "add_tag": "Ajouter une étiquette",

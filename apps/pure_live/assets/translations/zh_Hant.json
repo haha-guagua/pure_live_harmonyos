@@ -75,6 +75,7 @@
     "account_web_login_tip": "按頁面提示登入{name}（掃碼、簡訊或密碼）；登入成功會自動回來儲存。沒自動回來時點右上角“已登入，儲存”",
     "account_web_login_tip_desktop": "點頁面右上角的“登入”，用驗證碼、密碼或 App 掃碼登入{name}（字小可以兩指放大）；登入成功會自動回來儲存，沒回來時點右上角“已登入，儲存”",
     "account_web_login_title": "{name}登入",
+    "account_web_prepare_failed": "無法清理上次的網頁登入狀態，請重試。",
     "active_epg_source": "當前使用的節目單",
     "add": "新增",
     "add_tag": "新增標籤",

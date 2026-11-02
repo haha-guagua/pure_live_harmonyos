@@ -73,9 +73,9 @@ Android 以外的客户端各自要做的“专属”工作：Windows、Linux、
 | [X03 电视](X03-电视/README.md) | 电视外壳、焦点导航、以 pure_live_TV 为基线的并入。 | `████████████████████` 100% | 1 / 1 |
 | [X04 iOS和iPadOS](X04-iOS和iPadOS/README.md) | 构建、签名、平台差异。 | `███████████████████░` 93% | 1 / 3 |
 | [X05 macOS](X05-macOS/README.md) | 构建、签名、平台差异。 | `████████████████████` 100% | 1 / 1 |
-| [X06 HarmonyOS](X06-HarmonyOS/README.md) | 鸿蒙手机工程、插件、构建和历史故障回归。 | `██████████████████░░` 90% | 0 / 1 |
+| [X06 HarmonyOS](X06-HarmonyOS/README.md) | 鸿蒙手机工程、插件、构建和历史故障回归。 | `██████████████████░░` 90% | 0 / 2 |
 
-## 还没完成的（4）
+## 还没完成的（5）
 
 | 任务 | 状态 | 档位 | 阶段 |
 |---|---|---|---|
@@ -83,6 +83,7 @@ Android 以外的客户端各自要做的“专属”工作：Windows、Linux、
 | [X04.2](X04-iOS和iPadOS/X04.2-iPad播放控制和常亮/README.md) issue #24、#25：iOS 设备手势通道和常亮恢复 | 待真机 | 第一档 | — |
 | [X04.3](X04-iOS和iPadOS/X04.3-iOS录制路径容器更新保护/README.md) iOS录制路径容器更新保护 | 待真机 | 第一档 | 2/2 |
 | [X06.1](X06-HarmonyOS/X06.1-重构版鸿蒙移植/README.md) PureLive重构版鸿蒙手机移植与历史故障回归 | 待真机 | 第一档 | 3/3 |
+| [X06.2](X06-HarmonyOS/X06.2-平台官方网页登录/README.md) 鸿蒙平台官方网页登录与登录态保存 | 待真机 | 第一档 | 3/3 |
 
 决定见 [DECISIONS.md](../DECISIONS.md)，做法见 [PROCESS.md](../PROCESS.md)。
 

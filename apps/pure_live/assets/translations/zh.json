@@ -75,6 +75,7 @@
     "account_web_login_tip": "按页面提示登录{name}（扫码、短信或密码）；登录成功会自动回来保存。没自动回来时点右上角“已登录，保存”",
     "account_web_login_tip_desktop": "点页面右上角的“登录”，用验证码、密码或 App 扫码登录{name}（字小可以两指放大）；登录成功会自动回来保存，没回来时点右上角“已登录，保存”",
     "account_web_login_title": "{name}登录",
+    "account_web_prepare_failed": "无法清理上次的网页登录状态，请重试。",
     "active_epg_source": "当前使用的节目单",
     "add": "添加",
     "add_tag": "添加标签",
