@@ -16,11 +16,18 @@ struct Index {
 
   build() {
     Stack() {
-      FlutterPage({ viewId: this.viewId }).width('100%').height('100%')
       // The system panel remains visible at its default position when the user
-      // changes volume. Flutter provides the gesture/slider and actual-value HUD.
-      AVVolumePanel({ volumeLevel: this.mediaVolume })
+      // changes volume. Its transparent UIExtension must not cover Flutter's
+      // input surface; hit testing belongs on the native container, since the
+      // custom component does not forward that modifier to its UIExtension.
+      Stack() {
+        AVVolumePanel({ volumeLevel: this.mediaVolume })
+      }
+        .width(1).height(1)
+        .position({ x: 0, y: 0 })
         .hitTestBehavior(HitTestMode.None)
+        .focusable(false)
+      FlutterPage({ viewId: this.viewId }).width('100%').height('100%')
     }.width('100%').height('100%')
   }
 

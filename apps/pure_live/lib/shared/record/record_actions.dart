@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:live_core/live_core.dart';
 import 'package:live_record/live_record.dart';
@@ -70,22 +72,36 @@ Future<void> recordTaskAgain(AppRecording recording, Recorder recorder, RecordTa
   await recording.startTask(task);
 }
 
+bool _openingRecording = false;
+
 /// "播放": the recording in the system's player.
 /// Plays the recording at [path] in the app (V01.8), with the other
 /// recordings of its folder before and after it; another app only when the
 /// app has no page to show it on.
 Future<void> playRecording(String path) async {
+  if (_openingRecording) return;
   final context = AppNavigator.navigatorContext;
   if (context == null || !context.mounted) {
     if (!await AppNavigator.openFile(path)) AppNavigator.toast(i18n('record_panel_play_failed'));
     return;
   }
+  _openingRecording = true;
   final files = recordingsBeside(path);
-  await Navigator.of(context).push(
-    MaterialPageRoute<void>(
-      builder: (_) => RecordingPlayerPage(files: files, index: files.indexOf(path)),
-    ),
+  final closed = Completer<void>();
+  var built = false;
+  final route = MaterialPageRoute<void>(
+    builder: (_) {
+      built = true;
+      return RecordingPlayerPage(files: files, index: files.indexOf(path), onClosed: closed.complete);
+    },
   );
+  try {
+    await Navigator.of(context).push(route);
+    await route.completed;
+    if (built) await closed.future;
+  } finally {
+    _openingRecording = false;
+  }
 }
 
 /// "查看原因": the whole failure, selectable.

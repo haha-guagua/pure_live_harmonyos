@@ -196,6 +196,31 @@ final class PlaybackRemote extends ChangeNotifier {
     return await suspend(() => _targets.contains(target) && target.id == id);
   }
 
+  /// Pauses playback pages before a local player opens, including a live room
+  /// covered by the recording centre. This does not enable remote control.
+  Future<PlaybackResume> suspendForLocalPlayback() async {
+    final resumes = <PlaybackResume>[];
+    var released = false;
+    Future<void> resumeAll() async {
+      if (released) return;
+      released = true;
+      await Future.wait([for (final resume in resumes.reversed) Future<void>.sync(resume)]);
+    }
+
+    try {
+      for (final target in List<RemotePlaybackTarget>.of(_targets.reversed)) {
+        final suspend = target.suspend;
+        if (suspend == null) continue;
+        final id = target.id;
+        resumes.add(await suspend(() => _targets.contains(target) && target.id == id));
+      }
+    } on Object {
+      await resumeAll();
+      rethrow;
+    }
+    return resumeAll;
+  }
+
   /// Enables this receiver until explicitly stopped or the app exits.
   Future<void> start({InternetAddress? bind, bool discovery = true}) =>
       _starting ??= _start(bind: bind, discovery: discovery).whenComplete(() => _starting = null);

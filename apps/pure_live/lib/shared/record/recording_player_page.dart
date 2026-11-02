@@ -9,8 +9,10 @@ import 'package:live_player/live_player.dart';
 import 'package:live_store/live_store.dart';
 import 'package:live_ui/live_ui.dart';
 import 'package:path/path.dart' as p;
+import 'package:pure_live/app/app_log.dart';
 import 'package:pure_live/app/services.dart';
 import 'package:pure_live/i18n/i18n.dart';
+import 'package:pure_live/shared/remote/playback_remote.dart';
 
 /// The endings of the files the recorder writes (and that mpv plays).
 const Set<String> recordingExtensions = {'.mp4', '.flv', '.ts', '.mkv', '.m4a', '.aac', '.mp3'};
@@ -66,13 +68,16 @@ const List<double> recordingSpeeds = [0.5, 0.75, 1, 1.25, 1.5, 2, 3];
 /// was left.
 class RecordingPlayerPage extends ConsumerStatefulWidget {
   /// Creates the page for [files], showing [index].
-  const new({required this.files, required this.index, super.key});
+  const new({required this.files, required this.index, this.onClosed, super.key});
 
   /// The recordings, in order.
   final List<String> files;
 
   /// The one to play first.
   final int index;
+
+  /// Called once its player is released and the previous playback restored.
+  final VoidCallback? onClosed;
 
   @override
   ConsumerState<RecordingPlayerPage> createState() => _RecordingPlayerPageState();
@@ -86,22 +91,38 @@ class _RecordingPlayerPageState extends ConsumerState<RecordingPlayerPage> {
   Timer? _saveTimer;
   StreamSubscription<PlaybackState>? _states;
   PlaybackState _state = const PlaybackState();
+  bool _failed = false;
+  bool _closing = false;
+  late final Future<PlaybackResume> _interruption;
 
-  MetaStore get _meta => ref.read(storeProvider).meta;
+  late final MetaStore _meta;
 
   String get _path => widget.files[_index];
 
   @override
   void initState() {
     super.initState();
+    _meta = ref.read(storeProvider).meta;
+    _interruption = ref.read(appServicesProvider).remoteControl.suspendForLocalPlayback();
     _states = _session.states.listen((state) {
-      if (mounted) setState(() => _state = state);
+      if (mounted && !_closing) setState(() => _state = state);
     });
-    unawaited(_open());
+    unawaited(_start());
     _saveTimer = Timer.periodic(const Duration(seconds: 5), (_) => unawaited(_save()));
   }
 
+  Future<void> _start() async {
+    try {
+      if (mounted) await _open();
+    } on Object catch (error) {
+      AppLog.instance.warning('playback', 'recording-start-failed ${error.runtimeType}');
+      if (mounted) setState(() => _failed = true);
+    }
+  }
+
   Future<void> _open() async {
+    await _interruption;
+    if (!mounted) return;
     final saved = int.tryParse(await _meta.get(recordingPositionKey(_path)) ?? '') ?? 0;
     if (!mounted) return;
     final start = saved > 5000 ? Duration(milliseconds: saved) : null;
@@ -130,6 +151,7 @@ class _RecordingPlayerPageState extends ConsumerState<RecordingPlayerPage> {
   Future<void> _go(int index) async {
     if (index < 0 || index >= widget.files.length || index == _index) return;
     await _save();
+    if (!mounted) return;
     setState(() => _index = index);
     await _open();
   }
@@ -150,10 +172,33 @@ class _RecordingPlayerPageState extends ConsumerState<RecordingPlayerPage> {
 
   @override
   void dispose() {
-    _saveTimer?.cancel();
-    unawaited(_save().whenComplete(_session.dispose));
+    _closing = true;
     unawaited(_states?.cancel());
+    _saveTimer?.cancel();
+    unawaited(_close());
     super.dispose();
+  }
+
+  Future<void> _close() async {
+    try {
+      try {
+        await _session.pause();
+        await _save();
+      } finally {
+        await _session.dispose();
+      }
+    } on Object catch (error) {
+      AppLog.instance.warning('playback', 'recording-close-failed ${error.runtimeType}');
+    } finally {
+      try {
+        final resume = await _interruption;
+        await resume();
+      } on Object catch (error) {
+        AppLog.instance.warning('playback', 'recording-resume-failed ${error.runtimeType}');
+      } finally {
+        widget.onClosed?.call();
+      }
+    }
   }
 
   static String _time(Duration value) {
@@ -181,7 +226,7 @@ class _RecordingPlayerPageState extends ConsumerState<RecordingPlayerPage> {
       body: Column(
         children: [
           Expanded(child: LiveVideoView(session: _session)),
-          if (_state.status == PlaybackStatus.error)
+          if (_failed || _state.status == PlaybackStatus.error)
             Padding(
               padding: const EdgeInsets.all(12),
               child: Text(i18n('record_panel_play_failed'), style: const TextStyle(color: OnVideoColors.foreground)),

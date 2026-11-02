@@ -21,7 +21,12 @@ RemotePlaybackTarget playbackRemoteTarget({
     suspend: (valid) async {
       final player = session();
       final key = room()?.identityKey;
-      if (player == null || key == null || player.state.status == PlaybackStatus.paused) return () async {};
+      if (player == null || key == null) return () async {};
+      final active = switch (player.state.status) {
+        PlaybackStatus.playing || PlaybackStatus.buffering || PlaybackStatus.opening => true,
+        _ => false,
+      };
+      if (!active) return () async {};
       await player.pause();
       var owned = player.state.status == PlaybackStatus.paused;
       final subscription = player.states.listen((state) {
